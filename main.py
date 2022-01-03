@@ -8,8 +8,6 @@ from contextlib import redirect_stdout
 import requests  # For kanye quotes
 import pickle as pkl
 
-from keep_alive import keep_alive
-
 
 class Log:
 
@@ -320,9 +318,6 @@ def mem_clear():
     for filename in os.listdir('temp'):
         os.remove('temp/'+filename)
 
-
-# Keep bot running in Replit
-keep_alive()
 
 # Start clearing memory (recursive thread)
 mem_clear()
