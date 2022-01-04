@@ -121,6 +121,19 @@ intents.messages = True
 bot = discord.Client(intents=intents)
 history = {}
 admins = [557233155866886184]
+bans = []
+ban_messages = [
+    "I'm sorry {name}, I'm afraid I cannot do that",
+    "https://www.youtube.com/watch?v=w_Pll7GDVgI",
+    "Sorry, I can't. I have to walk my unicorn",
+    "I'm sorry, but you're not worth the trouble",
+    "I'm disinclined to acquiesce to your request",
+    "No, thanks",
+    "Ehhh... I'm not feeling like it",
+    "Uwu",
+    "Next time, maybe",
+    "Lol"
+]
 with open('count.txt', 'r') as f: snipes = int(f.read())
 os.mkdir('tmp')
 
@@ -183,24 +196,34 @@ async def on_message(message):
     # "Snipe" is in the first 3 words
     elif 'snipe' in words[:3]:
 
-        # Message was a reply (resend message)
-        if message.reference is not None:
-            print('sniping reply')
+        if message.author.id not in bans:
 
-            await snipe(Log(message.reference.cached_message), message.reference.cached_message.channel)
+            # Message was a reply (resend message)
+            if message.reference is not None:
+                print('sniping reply')
 
-        # Message is available to snipe
-        elif message.channel.id in history:
-            print('sniping normally')
+                await snipe(Log(message.reference.cached_message), message.reference.cached_message.channel)
 
-            # Find deleted message
-            ctx = history[message.channel.id].pop(0)
+            # Message is available to snipe
+            elif message.channel.id in history:
+                print('sniping normally')
 
-            # Snipe message
-            await snipe(ctx, message.channel)
+                # Find deleted message
+                ctx = history[message.channel.id].pop(0)
 
-        # No message to snipe
-        else: await message.channel.send("There's nothing to snipe!")
+                # Snipe message
+                await snipe(ctx, message.channel)
+
+            # No message to snipe
+            else: await message.channel.send("There's nothing to snipe!")
+
+        else:
+
+            # Deny banned user
+            await message.channel.send(ban_messages[0].format(name=message.author.name))
+
+            # Cycle ban messages
+            ban_messages.append(ban_messages.pop(0))
 
 
     elif 'presnipe' in words[:3]:
