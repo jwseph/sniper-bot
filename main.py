@@ -253,11 +253,14 @@ async def on_message(message):
         await message.channel.send(embed=embed)
 
 
-    # Sniper ping in words
-    elif 'sniper' in words[:3] and 'ping' in words[:3]
+    # Ping on receiving 'sniper ping'
+    elif 'sniper' in words[:3]:
 
-        # Send response
-        await message.channel.send('ping')
+        if 'ping' in words:
+            await message.channel.send('pong')
+            
+        elif 'pong' in words:
+            await message.channel.send('ping')
 
 
 
