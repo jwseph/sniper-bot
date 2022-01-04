@@ -122,6 +122,7 @@ bot = discord.Client(intents=intents)
 history = {}
 admins = [557233155866886184]
 with open('count.txt', 'r') as f: snipes = int(f.read())
+os.mkdir('tmp')
 
 
 @bot.event
