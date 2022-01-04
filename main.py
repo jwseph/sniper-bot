@@ -50,11 +50,11 @@ async def snipe(ctx, channel):
         if len(ctx.attachments) != 0:
             attachment = ctx.attachments[0]
             # Save attachment
-            await attachment.save('temp/'+attachment.filename)
+            await attachment.save('tmp/'+attachment.filename)
             # Send embed with attachment
-            await channel.send(embed=embed, file=discord.File('temp/'+attachment.filename))
+            await channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
             # Remove temporary file
-            os.remove('temp/'+attachment.filename)
+            os.remove('tmp/'+attachment.filename)
         # Message has no attachments
         else:
             # Resend this bot's embed
@@ -75,12 +75,12 @@ async def snipe(ctx, channel):
         attachment = ctx.attachments[0]
 
         # Save attachment
-        await attachment.save('temp/'+attachment.filename)
+        await attachment.save('tmp/'+attachment.filename)
 
         # Put attachment inside of embed if it is image
         if any(attachment.filename.endswith(ext) for ext in IMAGE_EXTENSIONS):
             embed.set_image(url='attachment://'+attachment.filename)
-            await channel.send(embed=embed, file=discord.File('temp/'+attachment.filename))
+            await channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
             for embed in ctx.embeds: await channel.send(embed=embed)  # Deleted message's embeds
 
 
@@ -88,10 +88,10 @@ async def snipe(ctx, channel):
         else:
             await channel.send(embed=embed)
             for embed in ctx.embeds: await channel.send(embed=embed)  # Deleted message's embeds
-            await channel.send(file=discord.File('temp/'+attachment.filename))
+            await channel.send(file=discord.File('tmp/'+attachment.filename))
 
         # Remove temporary file
-        os.remove('temp/'+attachment.filename)
+        os.remove('tmp/'+attachment.filename)
 
     # Message has no attachments
     else:
@@ -315,8 +315,8 @@ def mem_clear():
         #del history[channel_id]
 
     # Remove files from temp to free storage
-    for filename in os.listdir('temp'):
-        os.remove('temp/'+filename)
+    for filename in os.listdir('tmp'):
+        os.remove('tmp/'+filename)
 
 
 # Start clearing memory (recursive thread)
