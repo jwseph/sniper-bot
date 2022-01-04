@@ -124,7 +124,6 @@ admins = [557233155866886184]
 bans = []
 ban_messages = [
     "I'm sorry {name}, I'm afraid I cannot do that",
-    "https://www.youtube.com/watch?v=w_Pll7GDVgI",
     "Sorry, I can't. I have to walk my unicorn",
     "I'm sorry, but you're not worth the trouble",
     "I'm disinclined to acquiesce to your request",
