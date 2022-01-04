@@ -253,6 +253,13 @@ async def on_message(message):
         await message.channel.send(embed=embed)
 
 
+    # Sniper ping in words
+    elif 'sniper' in words[:3] and 'ping' in words[:3]
+
+        # Send response
+        await message.channel.send('ping')
+
+
 
 async def on_raw_message_action(payload):
 
