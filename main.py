@@ -180,31 +180,6 @@ async def on_message(message):
         else: await message.channel.send("There's nothing to snipe!")
 
 
-    # User wants to translate
-    elif len(words) > 0 and words[0] == 'translate':
-
-        translation = translate_query(message.content)
-
-        if translation is not None:
-
-            embed = discord.Embed(
-                description=translation.definition,
-                color=0x74a4f2 #0x5290f5
-            )
-
-            if translation.pronunciation != '':
-                embed.set_author(name='%s [%s]'%(translation.original, translation.pronunciation))
-            else:
-                embed.set_author(name=translation.original)
-
-            embed.set_footer(text='Powered by Google Translate')
-            await message.channel.send(embed=embed)
-
-        else:
-
-            await message.channel.send('Translation failed.')
-
-
     # Kanye is in words
     elif 'kanye' in words or 'west' in words or ('wanye' in words and 'kest' in words):
 
