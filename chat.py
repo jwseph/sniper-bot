@@ -8,9 +8,7 @@ from colorsys import hsv_to_rgb
 origins = [
   'https://kamiak.org',
   'https://beta.kamiak.org',
-  'https://chat--heroku.herokuapp.com',
   'https://kamiak.herokuapp.com',
-  'https://api.kamiak.org',
   'http://localhost',
 ]
 files = {
@@ -69,4 +67,4 @@ async def typing_stop(sid):
 
 if __name__ == '__main__':
   import uvicorn
-  uvicorn.run(app, host='0.0.0.0', port=8000)
+  uvicorn.run(app, host='0.0.0.0', port=80)
