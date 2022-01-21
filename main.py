@@ -6,7 +6,6 @@ import re
 from io import StringIO
 from contextlib import redirect_stdout
 import requests  # For kanye quotes
-import pickle as pkl
 
 
 class Log:
@@ -356,4 +355,6 @@ def mem_clear():
 mem_clear()
 
 # Start bot on Discord
-bot.run(TOKEN)
+thread = threading.Thread(target=bot.run, args=(TOKEN,))
+thread.daemon = True
+thread.start()
