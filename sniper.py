@@ -350,9 +350,12 @@ def mem_clear():
         os.remove('tmp/'+filename)
 
 
+def run():  # Start in thread
+  threading.Thread(target=bot.run, args=(TOKEN,), daemon=False).start()
+
+
 # Start clearing memory (recursive thread)
 mem_clear()
 
 # Start bot on Discord
-bot.run(TOKEN)
-# thread = threading.Thread(target=bot.run, args=(TOKEN,), daemon=True).start()
+run()
