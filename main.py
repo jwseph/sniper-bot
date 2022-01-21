@@ -2,7 +2,7 @@ import threading
 import sniper
 
 # sniper.run()
-threading.Thread(target=sniper.run, daemon=True).start()
+threading.Thread(target=sniper.run).start()
 
 
 import chat
