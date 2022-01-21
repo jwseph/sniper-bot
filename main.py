@@ -1,2 +1,3 @@
 import sniperbot
 
+print('hello')
