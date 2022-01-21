@@ -10,17 +10,16 @@ import requests  # For kanye quotes
 
 class Log:
 
-    __slots__ = 'is_valid', 'presnipe_id', 'content', 'author', 'attachments', 'embeds', 'created_at', 'deleted_at'
-
     # Initialize context structure
-    def __init__(self, message, presnipe_id = None):
+    def __init__(self, message):
+
+        __slots__ = 'is_valid', 'content', 'author', 'attachments', 'embeds', 'created_at', 'deleted_at'
 
         self.is_valid = message is not None
 
         if self.is_valid:
 
             # Save variables
-            self.presnipe_id = presnipe_id
             self.content = message.content
             self.author = message.author
             self.attachments = message.attachments
@@ -28,83 +27,6 @@ class Log:
             self.created_at = message.created_at
 
         self.deleted_at = datetime.datetime.now()
-
-
-async def snipe(ctx, channel):
-
-    # Clean channel history
-    if channel.id in history and len(history[channel.id]) == 0:
-        del history[channel.id]
-
-    # If message is invalid tell the user and terminate process
-    if not ctx.is_valid:
-        await channel.send('Message is unavailable (bot is being updated).')
-        return
-
-
-    # Resend exact message if message is embed sent by this bot (kinda useless ngl)
-    if ctx.author == bot.user and len(ctx.embeds) != 0:
-        embed = ctx.embeds[0]
-        # Message has attachments
-        if len(ctx.attachments) != 0:
-            attachment = ctx.attachments[0]
-            # Save attachment
-            await attachment.save('tmp/'+attachment.filename)
-            # Send embed with attachment
-            await channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
-            # Remove temporary file
-            os.remove('tmp/'+attachment.filename)
-        # Message has no attachments
-        else:
-            # Resend this bot's embed
-            await channel.send(embed=embed)
-        return  # Message has just been sniped
-
-
-    # Add data to embed
-    embed = discord.Embed(description=ctx.content, color=0x202225) # 0xbb0a1e
-    try: embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
-    except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
-    # embed.set_footer(text=bot.user, icon_url=bot.user.avatar_url)
-    embed.timestamp = ctx.created_at
-
-    # Message has attachments
-    if len(ctx.attachments) != 0:
-
-        attachment = ctx.attachments[0]
-
-        # Save attachment
-        await attachment.save('tmp/'+attachment.filename)
-
-        # Put attachment inside of embed if it is image
-        if any(attachment.filename.endswith(ext) for ext in IMAGE_EXTENSIONS):
-            embed.set_image(url='attachment://'+attachment.filename)
-            await channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
-            for embed in ctx.embeds: await channel.send(embed=embed)  # Deleted message's embeds
-
-
-        # Send separately if attachment is not image
-        else:
-            await channel.send(embed=embed)
-            for embed in ctx.embeds: await channel.send(embed=embed)  # Deleted message's embeds
-            await channel.send(file=discord.File('tmp/'+attachment.filename))
-
-        # Remove temporary file
-        os.remove('tmp/'+attachment.filename)
-
-    # Message has no attachments
-    else:
-
-        # Send this bot's embed
-        await channel.send(embed=embed)
-
-        # Send deleted message's embeds
-        for embed in ctx.embeds: await channel.send(embed=embed)
-
-    # Increase snipe total
-    global snipes
-    snipes += 1
-    print(f'[sniper] :: Successful snipe! #{snipes}')
 
 
 TOKEN = os.environ['TOKEN']
@@ -119,20 +41,6 @@ intents.messages = True
 bot = discord.Client(intents=intents)
 history = {}
 admins = [557233155866886184]
-bans = []
-ban_messages = [
-    "I'm sorry {name}, I'm afraid I cannot do that",
-    "Sorry, I can't. I have to walk my unicorn",
-    "I'm sorry, but you're not worth the trouble",
-    "I'm disinclined to acquiesce to your request",
-    "No, thanks",
-    "Ehhh... I'm not feeling like it",
-    "Uwu",
-    "Next time, maybe",
-    "Lol"
-]
-snipes = 0
-os.mkdir('tmp')
 
 
 @bot.event
@@ -144,10 +52,10 @@ async def on_ready():
     # Set bot status to 'Listening to "snipe"'
     await bot.change_presence(activity=discord.Activity(name='"snipe"', type=2))
 
-    # # Cache old messages
-    # for guild in bot.guilds:
-    #     for channel in guild.text_channels:
-    #         await channel.history().flatten()
+    # Cache old messages
+    for guild in bot.guilds:
+        for channel in guild.text_channels:
+            await channel.history().flatten()
 
 
 @bot.event
@@ -193,47 +101,107 @@ async def on_message(message):
     # "Snipe" is in the first 3 words
     elif 'snipe' in words[:3]:
 
-        if message.author.id not in bans:
+        # Message is available to snipe
+        if message.channel.id in history:
 
-            # Message was a reply (resend message)
-            if message.reference is not None:
-                print('sniping reply')
+            # Find deleted message
+            ctx = history[message.channel.id].pop(0)
 
-                await snipe(Log(message.reference.cached_message), message.reference.cached_message.channel)
+            # Clean channel history
+            if len(history[message.channel.id]) == 0: del history[message.channel.id]
 
-            # Message is available to snipe
-            elif message.channel.id in history:
-                print('sniping normally')
+            # If message is invalid tell the user and terminate process
+            if not ctx.is_valid:
+                await message.channel.send('Message is unavailable (bot is being updated).')
+                return
 
-                # Find deleted message
-                ctx = history[message.channel.id].pop(0)
 
-                # Snipe message
-                await snipe(ctx, message.channel)
+            # Resend exact message if message is embed sent by this bot (kinda useless ngl)
+            if ctx.author == bot.user and len(ctx.embeds) != 0:
+                embed = ctx.embeds[0]
+                # Message has attachments
+                if len(ctx.attachments) != 0:
+                    attachment = ctx.attachments[0]
+                    # Save attachment
+                    await attachment.save('temp/'+attachment.filename)
+                    # Send embed with attachment
+                    await message.channel.send(embed=embed, file=discord.File('temp/'+attachment.filename))
+                    # Remove temporary file
+                    os.remove('temp/'+attachment.filename)
+                # Message has no attachments
+                else:
+                    # Resend this bot's embed
+                    await message.channel.send(embed=embed)
+                return  # Message has just been sniped
 
-            # No message to snipe
-            else: await message.channel.send("There's nothing to snipe!\nIf you think a message was missed, please ping `jcc#8897`")
+
+            # Add data to embed
+            embed = discord.Embed(description=ctx.content, color=0x202225) # 0xbb0a1e
+            try: embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+            except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
+            # embed.set_footer(text=bot.user, icon_url=bot.user.avatar_url)
+            embed.timestamp = ctx.created_at
+
+            # Message has attachments
+            if len(ctx.attachments) != 0:
+
+                attachment = ctx.attachments[0]
+
+                # Save attachment
+                await attachment.save('temp/'+attachment.filename)
+
+                # Put attachment inside of embed if it is image
+                if any(attachment.filename.endswith(ext) for ext in IMAGE_EXTENSIONS):
+                    embed.set_image(url='attachment://'+attachment.filename)
+                    await message.channel.send(embed=embed, file=discord.File('temp/'+attachment.filename))
+                    for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
+
+
+                # Send separately if attachment is not image
+                else:
+                    await message.channel.send(embed=embed)
+                    for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
+                    await message.channel.send(file=discord.File('temp/'+attachment.filename))
+
+                # Remove temporary file
+                os.remove('temp/'+attachment.filename)
+
+            # Message has no attachments
+            else:
+
+                # Send this bot's embed
+                await message.channel.send(embed=embed)
+
+                # Send deleted message's embeds
+                for embed in ctx.embeds: await message.channel.send(embed=embed)
+
+        # No message to snipe
+        else: await message.channel.send("There's nothing to snipe!")
+
+
+    # User wants to translate
+    elif len(words) > 0 and words[0] == 'translate':
+
+        translation = translate_query(message.content)
+
+        if translation is not None:
+
+            embed = discord.Embed(
+                description=translation.definition,
+                color=0x74a4f2 #0x5290f5
+            )
+
+            if translation.pronunciation != '':
+                embed.set_author(name='%s [%s]'%(translation.original, translation.pronunciation))
+            else:
+                embed.set_author(name=translation.original)
+
+            embed.set_footer(text='Powered by Google Translate')
+            await message.channel.send(embed=embed)
 
         else:
 
-            # Deny banned user
-            await message.channel.send(ban_messages[0].format(name=message.author.name))
-
-            # Cycle ban messages
-            ban_messages.append(ban_messages.pop(0))
-
-
-    elif 'presnipe' in words[:3]:
-        print('presniping reply')
-
-        # Message was a reply (save next message for autosniping)
-        if message.reference is not None:
-
-            # Log message that was replied to (must be in same channel btw)
-            if message.channel.id in history:
-                history[message.channel.id].append(Log(message.reference.cached_message, presnipe_id = message.reference.message_id))
-            else:
-                history[message.channel.id] = [Log(message.reference.cached_message, presnipe_id = message.reference.message_id)]
+            await message.channel.send('Translation failed.')
 
 
     # Kanye is in words
@@ -251,40 +219,11 @@ async def on_message(message):
         await message.channel.send(embed=embed)
 
 
-    # Ping on receiving 'sniper ping'
-    elif 'sniper' in words[:3]:
-
-        if 'ping' in words:
-            await message.channel.send('pong')
-
-        elif 'pong' in words:
-            await message.channel.send('ping')
-
-
 
 async def on_raw_message_action(payload):
 
-    # If message was presniped, autosnipe it
-    if payload.channel_id in history:
-        # Look through cached messages for channel
-        channel = history[payload.channel_id]
-        for i in range(len(channel)):
-
-            # Presniped message was found in cache
-            if channel[i] is not None and channel[i].presnipe_id == payload.message_id:
-                print('sniping from deleted message')
-                print(channel)
-                # Store deleted presniped message
-                ctx = channel.pop(i)
-
-                # Send presniped message
-                await snipe(ctx, bot.get_channel(payload.channel_id))
-
-                # Stop searching
-                break
-
     # Message is in cache
-    elif payload.cached_message is not None:
+    if payload.cached_message is not None:
 
         message = payload.cached_message
 
@@ -305,15 +244,6 @@ async def on_raw_message_action(payload):
 
             # Log message normally
             history[message.channel.id] = [Log(message)]
-
-    # # Message is not in cache
-    # else:
-
-    #     # Log unless a valid deleted message is already saved
-    #     if payload.channel_id not in history:
-
-    #         # Log invalid message
-    #         history[payload.channel_id] = [Log(None)]
 
 
 @bot.event
@@ -346,17 +276,12 @@ def mem_clear():
         #del history[channel_id]
 
     # Remove files from temp to free storage
-    for filename in os.listdir('tmp'):
-        os.remove('tmp/'+filename)
+    for filename in os.listdir('temp'):
+        os.remove('temp/'+filename)
 
 
-def run():  # Start in thread
+# Start clearing memory (recursive thread)
+mem_clear()
 
-  # Start clearing memory (recursive thread)
-  mem_clear()
-
-  # Start bot on discord
-  bot.run(TOKEN)
-
-
-if __name__ == '__main__': run()
+# Start bot on Discord
+bot.run(TOKEN)
