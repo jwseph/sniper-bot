@@ -1,8 +1,8 @@
-import threading
-import sniper
+# import threading
+# import sniper
 
-# sniper.run( )
-threading.Thread(target=sniper.run, daemon=True).start()
+# # sniper.run( )
+# threading.Thread(target=sniper.run, daemon=True).start()
 
 print('hello UWUW UW UWU')
 
