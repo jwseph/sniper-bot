@@ -1,3 +1,3 @@
-import sniperbot
+import sniperbot.__main__
 
 print('hello')
