@@ -44,7 +44,7 @@ def timestamp():
 @socket.event
 async def connect(sid, environ):
   print(sid, 'connected')
-  queries = parse.parse_qs(environ['QUERY_STRING']);
+  queries = parse.parse_qs(environ['QUERY_STRING'])
   users[sid] = {
     'nickname': queries['nickname'][0],
     'color': random_color(queries['nickname'][0]+queries['seed'][0])
