@@ -357,7 +357,6 @@ def run():  # Start in thread
 
   # Start bot on discord
   bot.run(TOKEN)
-  # threading.Thread(target=bot.run, args=(TOKEN,), daemon=True).start()
 
 
 if __name__ == '__main__': run()
