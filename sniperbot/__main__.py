@@ -354,4 +354,5 @@ def mem_clear():
 mem_clear()
 
 # Start bot on Discord
-threading.Thread(target=bot.run, args=(TOKEN,)).start()
+bot.run(TOKEN)
+# threading.Thread(target=bot.run, args=(TOKEN,)).start()
