@@ -212,7 +212,8 @@ async def on_message(message):
                 await snipe(ctx, message.channel)
 
             # No message to snipe
-            else: await message.channel.send("There's nothing to snipe!\nIf you think a message was missed, please ping `jcc#8897`")
+            else: await message.channel.send("There's nothing to snipe! (Bot is being updated)")
+            # else: await message.channel.send("There's nothing to snipe!\nIf you think a message was missed, please ping `jcc#8897`")
 
         else:
 
