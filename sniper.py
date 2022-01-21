@@ -351,11 +351,13 @@ def mem_clear():
 
 
 def run():  # Start in thread
-  threading.Thread(target=bot.run, args=(TOKEN,), daemon=False).start()
+
+  # Start clearing memory (recursive thread)
+  mem_clear()
+
+  # Start bot on discord
+  bot.run(TOKEN)
+  # threading.Thread(target=bot.run, args=(TOKEN,), daemon=True).start()
 
 
-# Start clearing memory (recursive thread)
-mem_clear()
-
-# Start bot on Discord
-run()
+if __name__ == '__main__': run()
