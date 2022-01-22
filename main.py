@@ -51,7 +51,7 @@ async def on_ready():
     print('[sniper] :: Logged in as', bot.user)
 
     # Set bot status to 'Listening to "snipe"'
-    await bot.change_presence(activity=discord.Activity(name='"snipe"', type=2))
+    await bot.change_presence(status=discord.Status.dnd, activity=discord.Activity(name='"snipe"', type=2))
 
     # Cache old messages
     for guild in bot.guilds:
