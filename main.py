@@ -32,7 +32,7 @@ class Log:
 
 class Session:
 
-  __slots__ = 'get', '_session'
+  __slots__ = '_session'
 
   def __init__(self, session):
     self._session = session
