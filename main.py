@@ -6,14 +6,15 @@ import re
 from io import StringIO
 from contextlib import redirect_stdout
 import requests  # For kanye quotes
+from bs4 import BeautifulSoup
 
 
 class Log:
 
+    __slots__ = 'is_valid', 'content', 'author', 'attachments', 'embeds', 'created_at', 'deleted_at'
+
     # Initialize context structure
     def __init__(self, message):
-
-        __slots__ = 'is_valid', 'content', 'author', 'attachments', 'embeds', 'created_at', 'deleted_at'
 
         self.is_valid = message is not None
 
@@ -29,6 +30,35 @@ class Log:
         self.deleted_at = datetime.datetime.now()
 
 
+class Session:
+
+  __slots__ = 'get', '_session'
+
+  def __init__(self, session):
+    self._session = session
+
+  def get(self, session):
+    r = self._session.get(session)
+    if r.status_code == 429:
+      return self.get(session)
+
+
+def get_session(username=os.environ['USERNAME'], password=os.environ['PASSWORD']):
+
+  # Login
+  schoology_resp = requests.get('https://mukilteo.schoology.com')
+  schoology_soup = BeautifulSoup(schoology_resp.content, features='lxml')
+  login_resp = requests.post('https://sts.mukilteo.wednet.edu'+schoology_soup.find('form', {'id': 'loginForm'})['action'], {'UserName': username, 'Password': password})
+  login_soup = BeautifulSoup(login_resp.content, features='lxml')
+  login_soup_SAMLResponse = login_soup.find('form').find('input', {'name': 'SAMLResponse'})['value']
+
+  s = requests.session()
+  s.post('https://mukilteo.schoology.com/login/saml/receive', {'SAMLResponse': login_soup_SAMLResponse})
+
+  return Session(s)
+
+
+
 TOKEN = os.environ['TOKEN']
 CLEAR_LIMIT = datetime.timedelta(minutes=30)
 CLEAR_DELAY = datetime.timedelta(minutes=5)
@@ -41,6 +71,7 @@ intents.messages = True
 bot = discord.Client(intents=intents)
 history = {}
 admins = [557233155866886184]
+s = get_session()
 os.mkdir('tmp')
 
 
@@ -180,6 +211,21 @@ async def on_message(message):
         else: await message.channel.send("There's nothing to snipe!")
 
 
+    # User wants to doxx
+    elif words[0] == 'pls' and (words[1] == 'dox' or words[1] == 'doxx') and len(words) >= 3:
+
+      soup = BeautifulSoup(s.get(f'https://mukilteo.schoology.com/search/user?s={" ".join(words[2:])}').content, features='lxml')
+      student = soup.select_one('#main-inner > div:nth-child(4) > ul > li.search-summary.first > div')
+      if student is None:
+        await message.channel.send("That person doesn't exist!")
+      else:
+        embed = discord.Embed(color=0x202225)
+        embed.title = soup.select_one('div.item-title > a').text
+        embed.set_image(url=soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg'))
+        embed.set_footer(text=soup.select_one('div.item-info').text)
+        await message.channel.send(embed=embed)
+
+
     # Kanye is in words
     elif 'kanye' in words or 'west' in words or ('wanye' in words and 'kest' in words):
 
@@ -254,6 +300,10 @@ def mem_clear():
     # Remove files from temp to free storage
     for filename in os.listdir('tmp'):
         os.remove('tmp/'+filename)
+
+    # Create new session
+    global s
+    s = get_session()
 
 
 # Start clearing memory (recursive thread)
