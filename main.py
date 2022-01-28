@@ -44,7 +44,7 @@ class Session:
     return r
 
 
-def get_session(username=os.environ['USERNAME'], password=os.environ['PASSWORD']):
+def get_session(username=os.environ['MSDUSERNAME'], password=os.environ['MSDPASSWORD']):
 
   # Login
   schoology_resp = requests.get('https://mukilteo.schoology.com')
@@ -85,10 +85,10 @@ async def on_ready():
     # Set bot status to 'Listening to "snipe"'
     await bot.change_presence(status=discord.Status.dnd, activity=discord.Activity(name='"snipe"', type=2))
 
-    # Cache old messages
-    for guild in bot.guilds:
-        for channel in guild.text_channels:
-            await channel.history().flatten()
+    # # Cache old messages
+    # for guild in bot.guilds:
+    #     for channel in guild.text_channels:
+    #         await channel.history().flatten()
 
 
 @bot.event
@@ -213,10 +213,10 @@ async def on_message(message):
 
 
     # User wants to doxx
-    elif words[0] == 'pls' and (words[1] == 'dox' or words[1] == 'doxx') and len(words) >= 3:
+    elif len(words) >= 3 and words[0] == 'pls' and (words[1] == 'dox' or words[1] == 'doxx'):
 
       soup = BeautifulSoup(s.get(f'https://mukilteo.schoology.com/search/user?s={" ".join(words[2:])}').content, features='lxml')
-      student = soup.select_one('#main-inner > div:nth-child(4) > ul > li.search-summary.first > div')
+      student = soup.select_one('#main-inner > div.item-list > ul > li.search-summary.first > div')
       if student is None:
         await message.channel.send("That person doesn't exist!")
       else:
