@@ -41,6 +41,7 @@ class Session:
     r = self._session.get(session)
     if r.status_code == 429:
       return self.get(session)
+    return r
 
 
 def get_session(username=os.environ['USERNAME'], password=os.environ['PASSWORD']):
