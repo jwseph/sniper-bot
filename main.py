@@ -223,7 +223,7 @@ async def on_message(message):
         embed = discord.Embed(color=0x202225)
         embed.title = soup.select_one('div.item-title > a').text
         embed.set_image(url=soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg'))
-        embed.set_footer(text=soup.select_one('div.item-info').text)
+        embed.set_footer(text=soup.select_one('div.item-info > span.item-school').text)
         await message.channel.send(embed=embed)
 
 
