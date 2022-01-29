@@ -220,9 +220,8 @@ async def on_message(message):
     elif len(words) >= 3 and words[0] == 'pls' and (words[1] == 'dox' or words[1] == 'doxx'):
 
       if message.guild is not None and message.guild.id == 836698659071590452:
-        await message.channel.send('Please use `/search <person>` instead, thanks!')
-        await message.channel.send(f'/search {" ".join(words[2:])}')
-        return
+        await message.channel.send('Please use `/search <person>` instead next time, thanks!')
+        if s is None: return
 
       if s is None:
         await message.channel.send('Sorry, this command is not working at the moment')
