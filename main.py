@@ -215,6 +215,11 @@ async def on_message(message):
     # User wants to doxx
     elif len(words) >= 3 and words[0] == 'pls' and (words[1] == 'dox' or words[1] == 'doxx'):
 
+      if message.guild != None and message.guild.id == 836698659071590452:
+        await message.channel.send('Please use `/search <person>` instead')
+        await message.channel.send(f'/search {" ".join(words[2:])}')
+        return
+
       soup = BeautifulSoup(s.get(f'https://mukilteo.schoology.com/search/user?s={" ".join(words[2:])}').content, features='lxml')
       student = soup.select_one('#main-inner > div.item-list > ul > li.search-summary.first > div')
       if student is None:
