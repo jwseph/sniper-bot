@@ -46,17 +46,21 @@ class Session:
 
 def get_session(username=os.environ['MSDUSERNAME'], password=os.environ['MSDPASSWORD']):
 
-  # Login
-  schoology_resp = requests.get('https://mukilteo.schoology.com')
-  schoology_soup = BeautifulSoup(schoology_resp.content, features='lxml')
-  login_resp = requests.post('https://sts.mukilteo.wednet.edu'+schoology_soup.find('form', {'id': 'loginForm'})['action'], {'UserName': username, 'Password': password})
-  login_soup = BeautifulSoup(login_resp.content, features='lxml')
-  login_soup_SAMLResponse = login_soup.find('form').find('input', {'name': 'SAMLResponse'})['value']
+  try:
+    # Login
+    schoology_resp = requests.get('https://mukilteo.schoology.com')
+    schoology_soup = BeautifulSoup(schoology_resp.content, features='lxml')
+    login_resp = requests.post('https://sts.mukilteo.wednet.edu'+schoology_soup.find('form', {'id': 'loginForm'})['action'], {'UserName': username, 'Password': password})
+    login_soup = BeautifulSoup(login_resp.content, features='lxml')
+    login_soup_SAMLResponse = login_soup.find('form').find('input', {'name': 'SAMLResponse'})['value']
 
-  s = requests.session()
-  s.post('https://mukilteo.schoology.com/login/saml/receive', {'SAMLResponse': login_soup_SAMLResponse})
+    s = requests.session()
+    s.post('https://mukilteo.schoology.com/login/saml/receive', {'SAMLResponse': login_soup_SAMLResponse})
 
-  return Session(s)
+    return Session(s)
+
+  except:
+    return None
 
 
 
@@ -215,9 +219,13 @@ async def on_message(message):
     # User wants to doxx
     elif len(words) >= 3 and words[0] == 'pls' and (words[1] == 'dox' or words[1] == 'doxx'):
 
-      if message.guild != None and message.guild.id == 836698659071590452:
-        await message.channel.send('Please use `/search <person>` instead')
+      if message.guild is not None and message.guild.id == 836698659071590452:
+        await message.channel.send('Please use `/search <person>` instead, thanks!')
         await message.channel.send(f'/search {" ".join(words[2:])}')
+        return
+
+      if s is None:
+        await message.channel.send('Sorry, this command is not working at the moment')
         return
 
       soup = BeautifulSoup(s.get(f'https://mukilteo.schoology.com/search/user?s={" ".join(words[2:])}').content, features='lxml')
