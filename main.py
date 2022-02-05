@@ -222,7 +222,6 @@ async def on_message(message):
       embed = discord.Embed(description=ctx.content, color=0x202225) # 0xbb0a1e
       try: embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
       except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
-      # embed.set_footer(text=bot.user, icon_url=bot.user.avatar_url)
       embed.timestamp = ctx.created_at
 
       # Message has attachments
