@@ -68,7 +68,7 @@ class SchoologyView(discord.ui.View):
   async def update(self, interaction):
     student = self.students[self.i]
     embed = interaction.message.embeds[0]
-    embed.title = student.name
+    embed.title = f'{student.name} ({self.i+1}/{len(self.students)})'
     embed.set_image(url=student.image)
     embed.set_footer(text=student.school)
     await interaction.message.edit(embed=embed, view=self)
@@ -271,15 +271,9 @@ async def on_message(message):
         return
 
       soup = BeautifulSoup(s.get(f'https://mukilteo.schoology.com/search/user?s={" ".join(words[2:])}').content, features='lxml')
-      student = soup.select_one('#main-inner > div.item-list > ul > li.search-summary.first > div')
-      if student is None:
+      if soup.select_one('#main-inner > div.item-list > ul > li.search-summary.first') is None:
         await message.channel.send("That person doesn't exist!")
       else:
-        embed = discord.Embed(color=0x202225)
-        embed.title = student.select_one('div.item-title > a').text
-        embed.set_image(url=student.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg'))
-        embed.set_footer(text=student.select_one('div.item-info > span.item-school').text)
-
         students = [
           Student(
             name=student.select_one('div.item-title > a').text,
@@ -288,6 +282,13 @@ async def on_message(message):
           )
           for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
         ]
+        student = students[0]
+
+        embed = discord.Embed(color=0x202225)
+        embed.title = f'{student.name} (1/{len(students)})'
+        embed.set_image(url=student.image)
+        embed.set_footer(text=student.school)
+
         await message.channel.send(embed=embed, view=SchoologyView(students))
 
 
