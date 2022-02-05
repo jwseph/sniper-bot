@@ -272,26 +272,31 @@ async def on_message(message):
       await message.channel.send('Sorry, this command is not working at the moment')
       return
 
-    soup = BeautifulSoup(s.get(f'https://mukilteo.schoology.com/search/user?s={" ".join(words[2:])}').content, features='lxml')
-    if soup.select_one('#main-inner > div.item-list > ul > li.search-summary.first') is None:
-      await message.channel.send("That person doesn't exist!")
+    query = " ".join(words[2:])
+    if len(query) < 3:
+      await message.channel.send('Please use at least 3 letters')
+
     else:
-      students = [
-        Student(
-          name=student.select_one('div.item-title > a').text,
-          image=student.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg'),
-          school=student.select_one('div.item-info > span.item-school').text
-        )
-        for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
-      ]
-      student = students[0]
+      soup = BeautifulSoup(s.get(f'https://mukilteo.schoology.com/search/user?s={query}').content, features='lxml')
+      if soup.select_one('#main-inner > div.item-list > ul > li.search-summary.first') is None:
+        await message.channel.send("That person doesn't exist!")
+      else:
+        students = [
+          Student(
+            name=student.select_one('div.item-title > a').text,
+            image=student.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg'),
+            school=student.select_one('div.item-info > span.item-school').text
+          )
+          for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
+        ]
+        student = students[0]
 
-      embed = discord.Embed(color=0x202225)
-      embed.title = f'{student.name} (1/{len(students)})'
-      embed.set_image(url=student.image)
-      embed.set_footer(text=student.school)
+        embed = discord.Embed(color=0x202225)
+        embed.title = f'{student.name} (1/{len(students)})'
+        embed.set_image(url=student.image)
+        embed.set_footer(text=student.school)
 
-      await message.channel.send(embed=embed, view=SchoologyView(students, message.author))
+        await message.channel.send(embed=embed, view=SchoologyView(students, message.author))
 
 
   # Kanye is in words
