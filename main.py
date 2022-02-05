@@ -54,10 +54,11 @@ class Student:
 
 class SchoologyView(discord.ui.View):
 
-  def __init__(self, students):
+  def __init__(self, students, author):
     super().__init__()
     self.i = 0
     self.students = students
+    self.author = author
     self.prev_button = discord.ui.Button(label='Prev', disabled=True, emoji='<:kannaleft:939396342772551710>')
     self.next_button = discord.ui.Button(label='Next', disabled=(len(self.students) == 1), emoji='<:kannaright:939396366537461831>')
     self.prev_button.callback = self.prev_callback
@@ -74,12 +75,14 @@ class SchoologyView(discord.ui.View):
     await interaction.message.edit(embed=embed, view=self)
 
   async def prev_callback(self, interaction):
+    if interaction.user != self.author: return
     if self.i >= len(self.students)-1: self.next_button.disabled = False
     self.i -= 1
     if self.i <= 0: self.prev_button.disabled = True
     await self.update(interaction)
 
   async def next_callback(self, interaction):
+    if interaction.user != self.author: return
     if self.i <= 0: self.prev_button.disabled = False
     self.i += 1
     if self.i >= len(self.students)-1: self.next_button.disabled = True
@@ -288,7 +291,7 @@ async def on_message(message):
       embed.set_image(url=student.image)
       embed.set_footer(text=student.school)
 
-      await message.channel.send(embed=embed, view=SchoologyView(students))
+      await message.channel.send(embed=embed, view=SchoologyView(students, message.author))
 
 
   # Kanye is in words
