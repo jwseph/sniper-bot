@@ -44,6 +44,49 @@ class Session:
     return r
 
 
+class Student:
+  __slots__ = 'name', 'image', 'school'
+  def __init__(self, name, image, school):
+    self.name = name
+    self.image = image
+    self.school = school
+
+
+class SchoologyView(discord.ui.View):
+
+  def __init__(self, students):
+    super().__init__()
+    self.i = 0
+    self.students = students
+    self.prev_button = discord.ui.Button(label='Prev', disabled=True, emoji='<:humphead:854036807996801055>')
+    self.next_button = discord.ui.Button(label='Next', disabled=(len(self.students) == 1), emoji='<:humplegs:854036839622115333>')
+    self.prev_button.callback = self.prev_callback
+    self.next_button.callback = self.next_callback
+    self.add_item(self.prev_button)
+    self.add_item(self.next_button)
+
+  async def update(self, interaction):
+    student = self.students[self.i]
+    embed = interaction.message.embeds[0]
+    embed.title = student.name
+    embed.set_image(url=student.image)
+    embed.set_footer(text=student.school)
+    await interaction.message.edit(embed=embed, view=self)
+
+  async def prev_callback(self, interaction):
+    if self.i >= len(self.students)-1: self.next_button.disabled = False
+    self.i -= 1
+    if self.i <= 0: self.prev_button.disabled = True
+    await self.update(interaction)
+
+  async def next_callback(self, interaction):
+    if self.i <= 0: self.prev_button.disabled = False
+    self.i += 1
+    if self.i >= len(self.students)-1: self.next_button.disabled = True
+    await self.update(interaction)
+
+
+
 def get_session(username=os.environ['MSDUSERNAME'], password=os.environ['MSDPASSWORD']):
 
   try:
@@ -77,7 +120,7 @@ bot = discord.Client(intents=intents)
 history = {}
 admins = [557233155866886184]
 s = get_session()
-os.mkdir('tmp')
+if not os.path.exists('tmp'): os.mkdir('tmp')
 
 
 @bot.event
@@ -233,10 +276,19 @@ async def on_message(message):
         await message.channel.send("That person doesn't exist!")
       else:
         embed = discord.Embed(color=0x202225)
-        embed.title = soup.select_one('div.item-title > a').text
-        embed.set_image(url=soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg'))
-        embed.set_footer(text=soup.select_one('div.item-info > span.item-school').text)
-        await message.channel.send(embed=embed)
+        embed.title = student.select_one('div.item-title > a').text
+        embed.set_image(url=student.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg'))
+        embed.set_footer(text=student.select_one('div.item-info > span.item-school').text)
+
+        students = [
+          Student(
+            name=student.select_one('div.item-title > a').text,
+            image=student.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg'),
+            school=student.select_one('div.item-info > span.item-school').text
+          )
+          for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
+        ]
+        await message.channel.send(embed=embed, view=SchoologyView(students))
 
 
     # Kanye is in words
