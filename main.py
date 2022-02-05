@@ -217,7 +217,7 @@ async def on_message(message):
 
             # Add data to embed
             embed = discord.Embed(description=ctx.content, color=0x202225) # 0xbb0a1e
-            try: embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+            try: embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
             except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
             # embed.set_footer(text=bot.user, icon_url=bot.user.avatar_url)
             embed.timestamp = ctx.created_at
@@ -235,7 +235,6 @@ async def on_message(message):
                     embed.set_image(url='attachment://'+attachment.filename)
                     await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
                     for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
-
 
                 # Send separately if attachment is not image
                 else:
