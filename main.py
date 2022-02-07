@@ -59,12 +59,26 @@ class SchoologyView(discord.ui.View):
     self.i = 0
     self.students = students
     self.author = author
-    self.prev_button = discord.ui.Button(label='Prev', disabled=True, emoji='<:kannaleft:939396342772551710>')
-    self.next_button = discord.ui.Button(label='Next', disabled=(len(self.students) == 1), emoji='<:kannaright:939396366537461831>')
+    self.frst_button = discord.ui.Button(emoji='<:first:940169691425566741>')
+    self.prev_button = discord.ui.Button(emoji='<:left:940157746723061810>')
+    self.next_button = discord.ui.Button(emoji='<:right:940157728083570748>')
+    self.last_button = discord.ui.Button(emoji='<:last:940169703177977866>')
+    self.frst_button.callback = self.frst_callback
     self.prev_button.callback = self.prev_callback
     self.next_button.callback = self.next_callback
+    self.last_button.callback = self.last_callback
+    self.add_item(self.frst_button)
     self.add_item(self.prev_button)
     self.add_item(self.next_button)
+    self.add_item(self.last_button)
+    self.disable_buttons()
+
+  async def on_timeout(self):
+    self.frst_button.disabled = True
+    self.prev_button.disabled = True
+    self.next_button.disabled = True
+    self.last_button.disabled = True
+    await self.message.edit(view=self)
 
   async def update(self, interaction):
     student = self.students[self.i]
@@ -74,18 +88,40 @@ class SchoologyView(discord.ui.View):
     embed.set_footer(text=student.school)
     await interaction.message.edit(embed=embed, view=self)
 
+  def disable_buttons(self):
+    self.frst_button.disabled = False
+    self.prev_button.disabled = False
+    self.next_button.disabled = False
+    self.last_button.disabled = False
+    if self.i == 0:
+      self.frst_button.disabled = True
+      self.prev_button.disabled = True
+    if self.i == len(self.students)-1:
+      self.next_button.disabled = True
+      self.last_button.disabled = True
+
   async def prev_callback(self, interaction):
     if interaction.user != self.author: return
-    if self.i >= len(self.students)-1: self.next_button.disabled = False
     self.i -= 1
-    if self.i <= 0: self.prev_button.disabled = True
+    self.disable_buttons()
     await self.update(interaction)
 
   async def next_callback(self, interaction):
     if interaction.user != self.author: return
-    if self.i <= 0: self.prev_button.disabled = False
     self.i += 1
-    if self.i >= len(self.students)-1: self.next_button.disabled = True
+    self.disable_buttons()
+    await self.update(interaction)
+
+  async def frst_callback(self, interaction):
+    if interaction.user != self.author: return
+    self.i = 0
+    self.disable_buttons()
+    await self.update(interaction)
+
+  async def last_callback(self, interaction):
+    if interaction.user != self.author: return
+    self.i = len(self.students)-1
+    self.disable_buttons()
     await self.update(interaction)
 
 
@@ -295,7 +331,8 @@ async def on_message(message):
         embed.set_image(url=student.image)
         embed.set_footer(text=student.school)
 
-        await message.channel.send(embed=embed, view=SchoologyView(students, message.author))
+        view = SchoologyView(students, message.author)
+        view.message = await message.channel.send(embed=embed, view=view)
 
 
   # Kanye is in words
