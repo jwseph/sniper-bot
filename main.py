@@ -74,9 +74,9 @@ class SchoologyView(discord.ui.View):
     self.disable_buttons()
 
   async def on_timeout(self):
-    self.frst_button.disabled = True
-    self.prev_button.disabled = True
-    self.next_button.disabled = True
+    self.frst_button.disabled = \
+    self.prev_button.disabled = \
+    self.next_button.disabled = \
     self.last_button.disabled = True
     await self.message.edit(view=self)
 
@@ -89,15 +89,15 @@ class SchoologyView(discord.ui.View):
     await interaction.message.edit(embed=embed, view=self)
 
   def disable_buttons(self):
-    self.frst_button.disabled = False
-    self.prev_button.disabled = False
-    self.next_button.disabled = False
+    self.frst_button.disabled = \
+    self.prev_button.disabled = \
+    self.next_button.disabled = \
     self.last_button.disabled = False
     if self.i == 0:
-      self.frst_button.disabled = True
+      self.frst_button.disabled = \
       self.prev_button.disabled = True
     if self.i == len(self.students)-1:
-      self.next_button.disabled = True
+      self.next_button.disabled = \
       self.last_button.disabled = True
 
   async def prev_callback(self, interaction):
