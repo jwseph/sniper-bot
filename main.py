@@ -70,7 +70,7 @@ class SchoologyView(discord.ui.View):
     self.add_item(self.frst_button)
     self.add_item(self.prev_button)
     self.add_item(self.next_button)
-    self.add_item(self.last_button)
+    # self.add_item(self.last_button)
     self.disable_buttons()
 
   async def on_timeout(self):
