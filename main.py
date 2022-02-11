@@ -1,4 +1,3 @@
-from tkinter import N
 import discord
 import datetime
 import threading
