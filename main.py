@@ -194,9 +194,8 @@ async def on_message(message):
 
       # Execute whilst capturing stdout
       out = StringIO()
-      async def __FUNCTION(message): print('__FUNCTION was not called')
       exec('async def __FUNCTION(message):\n  '+code.replace('\n', '\n  '), globals())
-      with redirect_stdout(out): await __FUNCTION(message)
+      with redirect_stdout(out): await __FUNCTION(message)  # type: ignore
       str_out = out.getvalue()
 
       # Send stdout if there is anything to send

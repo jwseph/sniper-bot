@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import asyncio
+import json
 
 
 def get_soup(url):
@@ -11,9 +12,39 @@ def get_soup(url):
     print(r.status_code)
     return BeautifulSoup(r.content, features='lxml') if r.ok else None
 
+class Student:
+  __slots__ = 'name', 'image', 'school', 'url', 'id'
+  def __init__(self, obj=None, **kwargs):
+    if 'soup' in kwargs:
+      soup = kwargs['soup']
+      self.name = soup.select_one('div.item-title > a').text
+      self.image = soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg')
+      self.school = soup.select_one('div.item-info > span.item-school').text
+      self.url = 'https://mukilteo.schoology.com'+soup.select_one('div.item-title > a')['href']+'/info'
+      self.id = None
+    elif obj is not None:
+      self.name = obj['name']
+      self.image = obj['image']
+      self.school = obj['school']
+      self.url = obj['url']
+      self.id = obj['id']
+    else:
+      raise ValueError('Neither soup or obj was passed in Student constructor.')
+  def to_json(self):
+    return {
+      'name': self.name,
+      'image': self.image,
+      'school': self.school,
+      'url': self.url,
+      'id': self.id
+    }
+def to_json(student: Student):
+  return student.to_json()
+
+
 username, password = '1602362@mukilteo.wednet.edu', 'JoajCas123'
 s = requests.session()
-    
+
 
 async def main():
 
@@ -28,7 +59,7 @@ async def main():
     #user_data = json.loads(receive_soup.select_one('#body > script').text.replace('window.siteNavigationUiProps=', ''))['props']['user']
 
 
-    n = 500
+    n = 20
     #n = 19755
     loop = asyncio.get_event_loop()
     futures = [loop.run_in_executor(None, get_soup, f'https://mukilteo.schoology.com/search/user?page={p}&s=%20%20%20') for p in range(-(-n//10))]
@@ -38,15 +69,12 @@ async def main():
     for p, future in enumerate(futures):
         soup = await future
         students += [
-            [
-                student.select_one('div.item-title > a').text,
-                #student.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg'),
-                student.select_one('div.item-info > span.item-school').text
-            ]
+            Student(soup=student)
             for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
         ]
 
-    print(students)
-        
+    globals()['x'] = json.dumps(students, default=to_json)
+    print(x)
 
-asyncio.run(main())
+await main()
+# asyncio.run(main())
