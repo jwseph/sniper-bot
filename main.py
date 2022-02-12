@@ -45,11 +45,13 @@ class Session:
 
 
 class Student:
-  __slots__ = 'name', 'image', 'school'
-  def __init__(self, name, image, school):
-    self.name = name
-    self.image = image
-    self.school = school
+  __slots__ = 'name', 'image', 'school', 'url', 'id'
+  def __init__(self, soup):
+    self.name = soup.select_one('div.item-title > a').text
+    self.image = soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg')
+    self.school = soup.select_one('div.item-info > span.item-school').text
+    self.url = 'https://mukilteo.schoology.com'+soup.select_one('div.item-title > a')['href']+'/info'
+    self.id = None
 
 
 class SchoologyView(discord.ui.View):
@@ -319,11 +321,7 @@ async def on_message(message):
         await message.channel.send("That person doesn't exist!")
       else:
         students = [
-          Student(
-            name=student.select_one('div.item-title > a').text,
-            image=student.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg'),
-            school=student.select_one('div.item-info > span.item-school').text
-          )
+          Student(student)
           for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
         ]
         student = students[0]
