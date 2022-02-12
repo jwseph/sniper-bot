@@ -183,7 +183,7 @@ async def on_ready():
 async def on_message(message):
 
   # Stop execution if sender is this bot
-  if message.author == bot.user: return
+  # if message.author == bot.user: return
 
   # Execute message if it is send by admin and is enclosed with "```"s
   if message.author.id in admins and message.content.startswith('```') and message.content.endswith('```'):
