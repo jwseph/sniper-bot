@@ -223,6 +223,8 @@ async def on_message(message):
   # "Snipe" is in the first 3 words
   elif 'snipe' in words[:3]:
 
+    if message.author == bot.user: await message.delete()
+
     # Message is available to snipe
     if message.channel.id in history:
 
