@@ -30,7 +30,7 @@ class Student:
       self.id = obj['id']
     else:
       raise ValueError('Neither soup or obj was passed in Student constructor.')
-  def to_json(self):
+  def to_dict(self):
     return {
       'name': self.name,
       'image': self.image,
@@ -38,8 +38,8 @@ class Student:
       'url': self.url,
       'id': self.id
     }
-def to_json(student: Student):
-  return student.to_json()
+def to_dict(student: Student):
+  return student.to_dict()
 
 
 username, password = '1602362@mukilteo.wednet.edu', 'JoajCas123'
@@ -59,7 +59,7 @@ async def main():
     #user_data = json.loads(receive_soup.select_one('#body > script').text.replace('window.siteNavigationUiProps=', ''))['props']['user']
 
 
-    n = 20
+    n = 19755
     #n = 19755
     loop = asyncio.get_event_loop()
     futures = [loop.run_in_executor(None, get_soup, f'https://mukilteo.schoology.com/search/user?page={p}&s=%20%20%20') for p in range(-(-n//10))]
@@ -73,8 +73,9 @@ async def main():
             for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
         ]
 
-    globals()['x'] = json.dumps(students, default=to_json)
-    print(x)
+    json.dump(students, open('data.json', 'w'), indent=2, default=to_dict)
+    # globals()['x'] = json.dumps(students, default=to_json)
+    # print(x)
 
 await main()
 # asyncio.run(main())

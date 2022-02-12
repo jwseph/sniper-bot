@@ -7,6 +7,7 @@ from io import StringIO
 from contextlib import redirect_stdout
 import requests  # For kanye quotes
 from bs4 import BeautifulSoup
+import json
 
 
 class Log:
@@ -46,12 +47,32 @@ class Session:
 
 class Student:
   __slots__ = 'name', 'image', 'school', 'url', 'id'
-  def __init__(self, soup):
-    self.name = soup.select_one('div.item-title > a').text
-    self.image = soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg')
-    self.school = soup.select_one('div.item-info > span.item-school').text
-    self.url = 'https://mukilteo.schoology.com'+soup.select_one('div.item-title > a')['href']+'/info'
-    self.id = None
+  def __init__(self, obj=None, **kwargs):
+    if 'soup' in kwargs:
+      soup = kwargs['soup']
+      self.name = soup.select_one('div.item-title > a').text
+      self.image = soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg')
+      self.school = soup.select_one('div.item-info > span.item-school').text
+      self.url = 'https://mukilteo.schoology.com'+soup.select_one('div.item-title > a')['href']+'/info'
+      self.id = None
+    elif obj is not None:
+      self.name = obj['name']
+      self.image = obj['image']
+      self.school = obj['school']
+      self.url = obj['url']
+      self.id = obj['id']
+    else:
+      raise ValueError('Neither soup or obj was passed in Student constructor.')
+  def to_dict(self):
+    return {
+      'name': self.name,
+      'image': self.image,
+      'school': self.school,
+      'url': self.url,
+      'id': self.id
+    }
+def to_dict(student: Student):
+  return student.to_dict()
 
 
 class SchoologyView(discord.ui.View):
@@ -161,6 +182,7 @@ bot = discord.Client(intents=intents, status=discord.Status.dnd, activity=discor
 history = {}
 admins = [557233155866886184]
 s = get_session()
+data = [Student(student) for student in json.load(open('data.json', 'r'))] # Schoology data
 if not os.path.exists('tmp'): os.mkdir('tmp')
 
 
@@ -308,32 +330,66 @@ async def on_message(message):
       await message.channel.send('Please use `/search <person>` instead next time, thanks!')
       if s is None: return
 
-    if s is None:
-      await message.channel.send('Sorry, this command is not working at the moment')
-      return
+    # if s is None:
+    #   await message.channel.send('Sorry, this command is not working at the moment')
+    #   return
 
-    query = " ".join(words[2:])
-    if len(query) < 3:
-      await message.channel.send('Please use at least 3 letters')
-
+    query = message.content.lower().split(' ')[2:]
+    students = [
+      student
+      for student, matches in sorted(
+        [
+          (student, matches)
+          for student in data
+          for matches in [len([
+            any(
+              param in name
+              for name in student.name.lower().split(' ')
+            )
+            for param in query
+          ])]
+          if matches > 0
+        ],
+        key=(lambda x: x[1]),
+        reverse=True
+      )
+    ]
+    if len(students) == 0:
+      await message.channel.send("That person doesn't exist!")
     else:
-      soup = BeautifulSoup(s.get(f'https://mukilteo.schoology.com/search/user?s={query}').content, features='lxml')
-      if soup.select_one('#main-inner > div.item-list > ul > li.search-summary.first') is None:
-        await message.channel.send("That person doesn't exist!")
-      else:
-        students = [
-          Student(student)
-          for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
-        ]
-        student = students[0]
+      student = students[0]
 
-        embed = discord.Embed(color=0x202225)
-        embed.title = f'{student.name} (1/{len(students)})'
-        embed.set_image(url=student.image)
-        embed.set_footer(text=student.school)
+      embed = discord.Embed(color=0x202225)
+      embed.title = f'{student.name} (1/{len(students)})'
+      embed.set_image(url=student.image)
+      embed.set_footer(text=student.school)
 
-        view = SchoologyView(students, message.author)
-        view.message = await message.channel.send(embed=embed, view=view)
+      view = SchoologyView(students, message.author)
+      view.message = await message.channel.send(embed=embed, view=view)
+
+
+    # query = " ".join(words[2:])
+    # if len(query) < 3:
+    #   await message.channel.send('Please use at least 3 letters')
+
+    # else:
+    #   soup = BeautifulSoup(s.get(f'https://mukilteo.schoology.com/search/user?s={query}').content, features='lxml')
+    #   if soup.select_one('#main-inner > div.item-list > ul > li.search-summary.first') is None:
+    #     await message.channel.send("That person doesn't exist!")
+    #   else:
+    #     students = [
+    #       Student(soup=student)
+    #       for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
+    #     ]
+        # student = students[0]
+
+        # embed = discord.Embed(color=0x202225)
+        # embed.title = f'{student.name} (1/{len(students)})'
+        # embed.set_image(url=student.image)
+        # embed.set_footer(text=student.school)
+
+        # view = SchoologyView(students, message.author)
+        # view.message = await message.channel.send(embed=embed, view=view)
 
 
   # Kanye is in words
