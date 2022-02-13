@@ -62,7 +62,7 @@ async def main():
     n = 19755
     #n = 19755
     loop = asyncio.get_event_loop()
-    futures = [loop.run_in_executor(None, get_soup, f'https://mukilteo.schoology.com/search/user?page={p}&s=%20%20%20') for p in range(-(-n//10))]
+    futures = [loop.run_in_executor(None, get_soup, f'https://mukilteo.schoology.com/search/user?page={p}&s=+++') for p in range(-(-n//10))]
 
     students = []
 
