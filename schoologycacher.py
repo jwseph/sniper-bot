@@ -11,7 +11,7 @@ def get_soup(url):
         r = s.get(url)
     print(r.status_code)
     return BeautifulSoup(r.content, features='lxml') if r.ok else None
-json.dumps(sorted(sorted(students, key=(lambda student: student.name[::-1].split(' ', 1)[1][::-1])), key=(lambda student: student.name[::-1].split(' ', 1)[0][::-1])), indent=2, default=to_dict)
+
 class Student:
   __slots__ = 'name', 'image', 'school', 'url', 'id'
   def __init__(self, obj=None, **kwargs):
@@ -73,9 +73,8 @@ async def main():
             for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
         ]
 
-    json.dump(students, open('data.json', 'w'), indent=2, default=to_dict)
-    # globals()['x'] = json.dumps(students, default=to_json)
-    # print(x)
+    #json.dump(students, open('data.json', 'w'), indent=2, default=to_dict)
+    print(json.dumps(students, indent=2, default=to_dict))
 
 await main()
 # asyncio.run(main())

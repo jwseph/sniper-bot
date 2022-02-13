@@ -77,6 +77,38 @@ def to_dict(student: Student):
 
 class SchoologyView(discord.ui.View):
 
+  SCHOOL_URLS = {
+    'Mukilteo School District': 'https://www.mukilteoschools.org/',
+    'ACES': 'https://www.mukilteoschools.org/ac',
+    'Challenger': 'https://www.mukilteoschools.org/ch',
+    'Columbia': 'https://www.mukilteoschools.org/co',
+    'CBTC': 'https://www.mukilteoschools.org/Page/336',
+    'Discovery': 'https://www.mukilteoschools.org/di',
+    'ECEAP': 'https://www.mukilteoschools.org/page/12058',
+    'Endeavour': 'https://www.mukilteoschools.org/en',
+    'Explorer': 'https://www.mukilteoschools.org/ex',
+    'Fairmount': 'https://www.mukilteoschools.org/fa',
+    'Harbour Pointe': 'https://www.mukilteoschools.org/hp',
+    'Horizon': 'https://www.mukilteoschools.org/hz',
+    'Kamiak': 'https://www.mukilteoschools.org/ka',
+    'Lake Stickney': 'https://www.mukilteoschools.org/ls',
+    'Mariner': 'https://www.mukilteoschools.org/ma',
+    'Mukilteo Elementary': 'https://www.mukilteoschools.org/me',
+    'Special Education': 'https://www.mukilteoschools.org/page/1194',
+    'Virtual Academy': 'https://www.mukilteoschools.org/mva',
+    'Odyssey': 'https://www.mukilteoschools.org/oe',
+    'Olivia Park': 'https://www.mukilteoschools.org/op',
+    'Olympic View': 'https://www.mukilteoschools.org/ov',
+    'Pathfinder': 'https://www.mukilteoschools.org/pkc',
+    'Picnic Point': 'https://www.mukilteoschools.org/pi',
+    'Serene Lake': 'https://www.mukilteoschools.org/sl',
+    'Sno-Isle Skills Center': 'https://snoisletech.com/',
+    'Summer School - Elementary': 'https://www.mukilteoschools.org/Page/12059',
+    'Summer School - Middle/High': 'https://www.mukilteoschools.org/Page/12059',
+    'Summer School - Skills Center': 'https://www.mukilteoschools.org/Page/12059',
+    'Voyager': 'https://www.mukilteoschools.org/vo',
+  }
+
   def __init__(self, students, author):
     super().__init__()
     self.i = 0
@@ -106,9 +138,12 @@ class SchoologyView(discord.ui.View):
   async def update(self, interaction):
     student = self.students[self.i]
     embed = interaction.message.embeds[0]
-    embed.title = f'{student.name} ({self.i+1}/{len(self.students)})'
+    embed.title = f'{student.name}'
+    embed.description = \
+      (f'District ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
+      f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
     embed.set_image(url=student.image)
-    embed.set_footer(text=student.school)
+    embed.set_footer(text=f'{self.i+1}/{len(self.students)} result{"s" if len(self.students) > 1 else ""}')
     await interaction.message.edit(embed=embed, view=self)
 
   def disable_buttons(self):
@@ -360,8 +395,8 @@ async def on_message(message):
       student = students[0]
       embed = discord.Embed(color=0x202225)
       embed.title = f'{student.name} (1/{len(students)})'
+      embed.description = f'**Identification: **`{student.id}`' if student.id is not None else None
       embed.set_image(url=student.image)
-      embed.set_footer(text=student.school)
       view = SchoologyView(students, message.author)
       view.message = await message.channel.send(embed=embed, view=view)
 
