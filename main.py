@@ -143,7 +143,7 @@ class SchoologyView(discord.ui.View):
       (f'District ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
       f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
     embed.set_image(url=student.image)
-    embed.set_footer(text=f'{self.i+1}/{len(self.students)} result{"s" if len(self.students) > 1 else ""}')
+    embed.set_footer(text=f'{self.i+1} / {len(self.students)}')
     await interaction.message.edit(embed=embed, view=self)
 
   def disable_buttons(self):
@@ -399,7 +399,7 @@ async def on_message(message):
         (f'District ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
         f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
       embed.set_image(url=student.image)
-      embed.set_footer(text=f'1/{len(students)} result{"s" if len(students) > 1 else ""}')
+      embed.set_footer(text=f'1 / {len(students)}')
       view = SchoologyView(students, message.author)
       view.message = await message.channel.send(embed=embed, view=view)
 
