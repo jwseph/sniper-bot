@@ -394,9 +394,12 @@ async def on_message(message):
     else:
       student = students[0]
       embed = discord.Embed(color=0x202225)
-      embed.title = f'{student.name} (1/{len(students)})'
-      embed.description = f'**Identification: **`{student.id}`' if student.id is not None else None
+      embed.title = f'{student.name}'
+      embed.description = \
+        (f'District ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
+        f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
       embed.set_image(url=student.image)
+      embed.set_footer(text=f'1/{len(students)} result{"s" if len(students) > 1 else ""}')
       view = SchoologyView(students, message.author)
       view.message = await message.channel.send(embed=embed, view=view)
 
