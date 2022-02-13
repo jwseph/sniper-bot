@@ -180,7 +180,7 @@ intents.messages = True
 bot = discord.Client(intents=intents, status=discord.Status.dnd, activity=discord.Activity(name='"snipe"', type=2))
 history = {}
 admins = [557233155866886184]
-s = get_session()
+# s = get_session()
 data = [Student(student) for student in json.load(open('data.json', 'r'))] # Schoology data
 if not os.path.exists('tmp'): os.mkdir('tmp')
 
@@ -327,7 +327,7 @@ async def on_message(message):
 
     if message.guild is not None and message.guild.id == 836698659071590452:
       await message.channel.send('Please use `/search <person>` instead next time, thanks!')
-      if s is None: return
+      # if s is None: return
 
     # if s is None:
     #   await message.channel.send('Sorry, this command is not working at the moment')
@@ -342,7 +342,7 @@ async def on_message(message):
           for student in data
           for matches in [sum(
             next((
-              (4 if len(param) == len(name) else 1)*4096/(16*(param_i+1))
+              (4 if len(param) == len(name) else 1)-(16*(param_i+1))
               for name in student.name.lower().split(' ')
               if param in name
             ), 0)
@@ -354,7 +354,6 @@ async def on_message(message):
         reverse=True
       )
     ]
-    print(len(students))
     if len(students) == 0:
       await message.channel.send("That person doesn't exist!")
     else:
