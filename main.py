@@ -140,7 +140,7 @@ class SchoologyView(discord.ui.View):
     embed = interaction.message.embeds[0]
     embed.title = f'{student.name}'
     embed.description = \
-      (f'District ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
+      (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
       f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
     embed.set_image(url=student.image)
     embed.set_footer(text=f'{self.i+1} / {len(self.students)}')
@@ -391,7 +391,7 @@ async def on_message(message):
       embed = discord.Embed(color=0x202225)
       embed.title = f'{student.name}'
       embed.description = \
-        (f'District ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
+        (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
         f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
       embed.set_image(url=student.image)
       embed.set_footer(text=f'1 / {len(students)}')
