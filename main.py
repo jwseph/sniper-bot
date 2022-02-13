@@ -342,7 +342,7 @@ async def on_message(message):
           for student in data
           for matches in [sum(
             next((
-              1
+              10 if len(param) == len(name) else 1
               for name in student.name.lower().split(' ')
               if param in name
             ), 0)
