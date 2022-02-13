@@ -11,7 +11,7 @@ def get_soup(url):
         r = s.get(url)
     print(r.status_code)
     return BeautifulSoup(r.content, features='lxml') if r.ok else None
-
+json.dumps(sorted(sorted(students, key=(lambda student: student.name[::-1].split(' ', 1)[1][::-1])), key=(lambda student: student.name[::-1].split(' ', 1)[0][::-1])), indent=2, default=to_dict)
 class Student:
   __slots__ = 'name', 'image', 'school', 'url', 'id'
   def __init__(self, obj=None, **kwargs):
@@ -66,7 +66,7 @@ async def main():
 
     students = []
 
-    for p, future in enumerate(futures):
+    for future in futures:
         soup = await future
         students += [
             Student(soup=student)

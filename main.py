@@ -148,7 +148,6 @@ class SchoologyView(discord.ui.View):
     await self.update(interaction)
 
 
-
 def get_session(username=os.environ['MSDUSERNAME'], password=os.environ['MSDPASSWORD']):
 
   try:
@@ -341,29 +340,29 @@ async def on_message(message):
         [
           (student, matches)
           for student in data
-          for matches in [len([
-            any(
-              param in name
+          for matches in [sum(
+            next((
+              1
               for name in student.name.lower().split(' ')
-            )
+              if param in name
+            ), 0)
             for param in query
-          ])]
+          )]
           if matches > 0
         ],
         key=(lambda x: x[1]),
         reverse=True
       )
     ]
+    print(len(students))
     if len(students) == 0:
       await message.channel.send("That person doesn't exist!")
     else:
       student = students[0]
-
       embed = discord.Embed(color=0x202225)
       embed.title = f'{student.name} (1/{len(students)})'
       embed.set_image(url=student.image)
       embed.set_footer(text=student.school)
-
       view = SchoologyView(students, message.author)
       view.message = await message.channel.send(embed=embed, view=view)
 
