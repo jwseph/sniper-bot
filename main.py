@@ -159,25 +159,25 @@ class SchoologyView(discord.ui.View):
       self.last_button.disabled = True
 
   async def prev_callback(self, interaction):
-    if interaction.user != self.author: return
+    # if interaction.user != self.author: return
     self.i -= 1
     self.disable_buttons()
     await self.update(interaction)
 
   async def next_callback(self, interaction):
-    if interaction.user != self.author: return
+    # if interaction.user != self.author: return
     self.i += 1
     self.disable_buttons()
     await self.update(interaction)
 
   async def frst_callback(self, interaction):
-    if interaction.user != self.author: return
+    # if interaction.user != self.author: return
     self.i = 0
     self.disable_buttons()
     await self.update(interaction)
 
   async def last_callback(self, interaction):
-    if interaction.user != self.author: return
+    # if interaction.user != self.author: return
     self.i = len(self.students)-1
     self.disable_buttons()
     await self.update(interaction)
