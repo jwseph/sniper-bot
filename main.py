@@ -446,6 +446,8 @@ async def on_raw_message_action(payload):
 
     message = payload.cached_message
 
+    if message.author.id == 674785149556097054: return
+
     # Bot can now snipe its own messages
     # # Stop execution if sender is this bot
     # if message.author == bot.user: return
