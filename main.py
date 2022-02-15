@@ -446,7 +446,7 @@ async def on_raw_message_action(payload):
 
     message = payload.cached_message
 
-    if message.author.id == 674785149556097054: return
+    if message.author.id == 674785149556097054: return  # Aiden
 
     # Bot can now snipe its own messages
     # # Stop execution if sender is this bot
@@ -456,6 +456,8 @@ async def on_raw_message_action(payload):
     if message.channel.id in history and \
     history[message.channel.id][0].is_valid and \
     datetime.datetime.now()-history[message.channel.id][0].deleted_at < SNIPE_DELAY:
+
+      if message.author.id == 761148487483785226 or True: message.author.name = 'not '+message.author.name
 
       # Put deleted message in queue
       history[message.channel.id].append(Log(message))
