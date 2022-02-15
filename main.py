@@ -450,7 +450,7 @@ async def on_raw_message_action(payload):
     if message.author.id == 674785149556097054: return  # Aiden
 
     kwargs = []
-    if message.author.id == 761148487483785226: kwargs['color'] = 0x6500c5
+    if message.author.id == 761148487483785226 or True: kwargs['color'] = 0x6500c5
 
     # Bot can now snipe its own messages
     # # Stop execution if sender is this bot
