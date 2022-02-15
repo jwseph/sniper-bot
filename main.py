@@ -12,10 +12,10 @@ import json
 
 class Log:
 
-  __slots__ = 'is_valid', 'content', 'author', 'attachments', 'embeds', 'created_at', 'deleted_at'
+  __slots__ = 'is_valid', 'content', 'author', 'attachments', 'embeds', 'color', 'created_at', 'deleted_at'
 
   # Initialize context structure
-  def __init__(self, message):
+  def __init__(self, message, color=0x202225):
 
     self.is_valid = message is not None
 
@@ -26,6 +26,7 @@ class Log:
       self.author = message.author
       self.attachments = message.attachments
       self.embeds = message.embeds
+      self.color = color
       self.created_at = message.created_at
 
     self.deleted_at = datetime.datetime.now()
@@ -316,7 +317,7 @@ async def on_message(message):
 
 
       # Add data to embed
-      embed = discord.Embed(description=ctx.content, color=0x202225) # 0xbb0a1e
+      embed = discord.Embed(description=ctx.content, color=ctx.color) # 0xbb0a1e
       try: embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
       except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
       embed.timestamp = ctx.created_at
@@ -448,6 +449,9 @@ async def on_raw_message_action(payload):
 
     if message.author.id == 674785149556097054: return  # Aiden
 
+    kwargs = []
+    if message.author.id == 761148487483785226: kwargs['color'] = 0x6500c5
+
     # Bot can now snipe its own messages
     # # Stop execution if sender is this bot
     # if message.author == bot.user: return
@@ -457,16 +461,14 @@ async def on_raw_message_action(payload):
     history[message.channel.id][0].is_valid and \
     datetime.datetime.now()-history[message.channel.id][0].deleted_at < SNIPE_DELAY:
 
-      if message.author.id == 761148487483785226 or True: message.author.name = 'not '+message.author.name
-
       # Put deleted message in queue
-      history[message.channel.id].append(Log(message))
+      history[message.channel.id].append(Log(message, **kwargs))
 
     # Sender has not deleted another message recently
     else:
 
       # Log message normally
-      history[message.channel.id] = [Log(message)]
+      history[message.channel.id] = [Log(message, **kwargs)]
 
 
 @bot.event
