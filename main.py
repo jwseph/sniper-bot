@@ -9,6 +9,8 @@ import requests  # For kanye quotes
 from bs4 import BeautifulSoup
 import json
 
+from uwuify import uwuify
+
 
 class Log:
 
@@ -280,7 +282,7 @@ async def on_message(message):
   # "Snipe" is in the first 3 words
   elif 'snipe' in words[:3]:
 
-    if message.author == bot.user: await message.delete()
+    # if message.author == bot.user: await message.delete()
 
     # Message is available to snipe
     if message.channel.id in history:
@@ -422,6 +424,15 @@ async def on_message(message):
 
         # view = SchoologyView(students, message.author)
         # view.message = await message.channel.send(embed=embed, view=view)
+
+
+  # User wants to uwu text
+  elif message.content.startswith('pls uwu '):
+    await message.channel.send(uwuify(message.content[8:]))
+
+  # User wants to uwuify text
+  elif message.content.startswith('pls uwuify '):
+    await message.channel.send(uwuify(message.content[11:]))
 
 
   # Kanye is in words
