@@ -16,9 +16,9 @@ DEFAULTS = {
   'EXCLAMATIONS': 1
 }
 
-_spaces_modifier_faces = 0.05
-_spaces_modifier_actions = 0.075
-_spaces_modifier_stutters = 0.1
+_spaces_modifier_faces = 0.075 #0.05
+_spaces_modifier_actions = 0.15 #0.075
+_spaces_modifier_stutters = 0.2 #0.1
 _words_modifier = 1
 _exclamations_modifier = 1
 
