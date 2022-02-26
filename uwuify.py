@@ -138,7 +138,7 @@ def uwuify_exclamations(words:list) -> str:
 
 
 def uwuify_sentence(sentence:str) -> str:
-  words = sentence.split(' ')
+  words = sentence.strip().split(' ')
   words = uwuify_spaces(uwuify_exclamations(uwuify_words(words)))
   uwuified_string = ' '.join(words)
   return uwuified_string
