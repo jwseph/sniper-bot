@@ -73,6 +73,12 @@ class Polynomial:
   def __repr__(self):
     return '+'.join(map(str, self.terms)).replace('+-', '-')
 
+  def __contains__(self, degree):
+    return next((True for term in self.terms if degree == term.degree), False)
+    
+  def __getitem__(self, degree):
+    return next((term for term in self.terms if degree == term.degree), Term('0'))
+
   def __neg__(self):
     polynomial = self.copy()
     for term in polynomial.terms: term *= -1
@@ -128,6 +134,7 @@ class Polynomial:
           i -= 1
       print(self)
       i -= 1
+    self.degree = max(term.degree for term in self.terms)
 
   # def normalize(self, degree=None):
   #   self.sort()
@@ -209,12 +216,48 @@ class Equation:
     self.left.simplify()
 
 
+class SimplifiedEquation(Equation):
+
+  def __init__(self, equation):
+    equation = equation.copy()
+    equation.simplify()
+    self.left = equation.left
+    self.right = equation.right
+    self.terms = {self.left[degree] if degree in self.left else  for degree in range(self.left.degree-1, -1, -1)}
+
+  def get(degree):
+    return 
+
+
 
 class System:
 
   def __init__(self, string):
     string = string.replace(' ', '')
-    equations = [Equation(equation) for equation in string.split('\n')]
+    self.equations = [Equation(equation) for equation in string.split('\n')]
+
+  def __repr__(self):
+    return '\n'.join(map(str, self.equations))
+
+
+class LinearSystem(System):
+
+  def __init__(self, string):
+    super().__init__(string)
+    assert len(self.equations) == 2, "Linear system must have two equations"
+    self.equation1, self.equation2 = self.equations
+
+  def simplify(self):
+    self.equation1.simplify()
+    self.equation2.simplify()
+
+  def solve(self):
+    self.simplify()
+
+    pass
+
+
+
 
 
 
