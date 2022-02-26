@@ -22,7 +22,7 @@ class Term:  # Maybe add EXPR for verifying (also add to Polynomial too)
     term.coefficient *= -1
     return term
 
-  def __mul__(self, other):
+  def __mul__(self, other):  # Scalar
     term = self.copy()
     term.coefficient *= other
     return term
@@ -32,6 +32,31 @@ class Term:  # Maybe add EXPR for verifying (also add to Polynomial too)
     term.coefficient *= other
     return term
 
+  def __add__(self, other):
+    assert self & other
+    term = self.copy()
+    term.coefficient += other.coefficient
+    return term
+
+  def __iadd__(self, other):
+    assert self & other
+    self.coefficient += other.coefficient
+    return self
+
+  def __sub__(self, other):
+    assert self & other
+    term = self.copy()
+    term.coefficient -= other.coefficient
+    return term
+
+  def __isub__(self, other):
+    assert self & other
+    self.coefficient -= other.coefficient
+    return self
+
+  def __and__(self, other):
+    return self.variable == other.variable and self.degree == other.degree
+
 
 
 class Polynomial:
@@ -40,7 +65,7 @@ class Polynomial:
     string = string.replace(' ', '')
     str_terms = re.split(r'(?<=[A-Za-z\d])(?:\+|(?=\-))', string)
     self.terms = [Term(str_term) for str_term in str_terms]
-    self.degree = max(term.degree for term in self.terms)
+    self.degree = max((term.degree for term in self.terms), default=None)
 
   def copy(self):
     return deepcopy(self)
@@ -49,20 +74,74 @@ class Polynomial:
     return '+'.join(map(str, self.terms)).replace('+-', '-')
 
   def __neg__(self):
-    polynomial = copy(self)
-    polynomial.terms = [-term for term in self.terms]
+    polynomial = self.copy()
+    for term in polynomial.terms: term *= -1
+    return polynomial
+
+  def __mul__(self, other):  # Scalar
+    polynomial = self.copy()
+    if other == 0: polynomial.terms, polynomial.degree = [], None
+    for term in polynomial.terms: term *= other
+    return polynomial
+
+  def __rmul__(self, other):
+    polynomial = self.copy()
+    if other == 0: polynomial.terms, polynomial.degree = [], None
+    for term in polynomial.terms: term *= other
+    return polynomial
+
+  def __imul__(self, other):
+    if other == 0: self.terms, self.degree = [], None
+    for term in self.terms: term *= other
+    return self
+
+  def __add__(self, other):
+    polynomial = self.copy()
+    polynomial.terms = self.terms+other.copy().terms
+    polynomial.simplify()
+    polynomial.degree = max(term.degree for term in polynomial.terms)
+    return polynomial
+
+  def __iadd__(self, other):
+    self.terms += other.copy().terms
+    self.simplify()
+    self.degree = max(term.degree for term in self.terms)
+    return self
+
+  def __sub__(self, other):
+    return self+-other
+
+  def __isub__(self, other):
+    return self.__iadd__(-other)
 
   def sort(self):
     self.terms.sort(key=lambda term: term.degree, reverse=True)
 
-  def normalize(self, degree=None):
+  def simplify(self):  # Combine like terms
     self.sort()
-    if degree == None:
-      degree = self.degree
-    else:
-    for term in self.terms:
-      if
-      degree -= 1
+    i = len(self.terms)-1
+    while i > 0:
+      if self.terms[i] & self.terms[i-1]:
+        self.terms[i-1] += self.terms.pop(i)
+        if self.terms[i-1].coefficient == 0:
+          del self.terms[i-1]
+          i -= 1
+      print(self)
+      i -= 1
+
+  # def normalize(self, degree=None):
+  #   self.sort()
+  #   new_terms = []
+  #   if degree == None:
+  #     degree = self.degree
+  #   else:
+  #     pass
+  #   for term in self.terms:
+
+  #     for n in range(degree-term.degree):
+  #       new_terms.append(Term(f''))
+  #       degree -= 1
+  #       pass
 
 
 class Equation:
@@ -79,10 +158,63 @@ class Equation:
   def __repr__(self):
     return str(self.left)+' = '+str(self.right)
 
-  def normalize(self):
-    self.left += -self.right
+  def __neg__(self):
+    equation = self.copy()
+    equation.left *= -1
+    equation.right *= -1
+    return equation
+
+  def __mul__(self, other):  # Scalar
+    equation = self.copy()
+    equation.left *= other
+    equation.right *= other
+    return equation
+
+  def __mul__(self, other):
+    equation = self.copy()
+    equation.left *= other
+    equation.right *= other
+    return equation
+
+  def __imul__(self, other):
+    self.left *= other
+    self.right *= other
+    return self
+
+  def __add__(self, other):
+    equation = self.copy()
+    equation.left += other.left
+    equation.right += other.right
+    return equation
+
+  def __iadd__(self, other):
+    self.left += other.left
+    self.right += other.right
+    return self
+
+  def __sub__(self, other):
+    equation = self.copy()
+    equation.left -= other.left
+    equation.right -= other.right
+    return equation
+
+  def __isub__(self, other):
+    self.left -= other.left
+    self.right -= other.right
+    return self
+
+  def simplify(self):
+    self.left -= self.right
     self.right = Polynomial()
-    self.left.sort()
+    self.left.simplify()
+
+
+
+class System:
+
+  def __init__(self, string):
+    string = string.replace(' ', '')
+    equations = [Equation(equation) for equation in string.split('\n')]
 
 
 
