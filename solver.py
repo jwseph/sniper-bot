@@ -7,7 +7,7 @@ class Term:  # Maybe add EXPR for verifying (also add to Polynomial too)
 
   def __init__(self, string='0'):
     string = string.replace(' ', '')
-    self.coefficient = int([*re.findall(r'[\-\d]+(?:(?=[A-Za-z])|(?=$))', string), '1'][0]) if not re.match(r'-([A-Za-z])', string) else -1
+    self.coefficient = int([*re.findall(r'^[\-\d]+(?:(?=[A-Za-z])|(?=$))(?!\^)', string), '1'][0]) if not re.match(r'-([A-Za-z])', string) else -1
     self.variable = [*re.findall(r'[A-Za-z]+', string), None][0]
     self.degree = int([*re.findall(r'(?<=\^)\d+', string), '1'][0])
 
@@ -64,6 +64,7 @@ class Polynomial:
   def __init__(self, string=''):
     string = string.replace(' ', '')
     str_terms = re.split(r'(?<=[A-Za-z\d])(?:\+|(?=\-))', string)
+    print(str_terms)
     self.terms = [Term(str_term) for str_term in str_terms]
     self.degree = max((term.degree for term in self.terms), default=None)
 
@@ -77,7 +78,7 @@ class Polynomial:
     return next((True for term in self.terms if degree == term.degree), False)
     
   def __getitem__(self, degree):
-    return next((term for term in self.terms if degree == term.degree), Term('0'))
+    return next((term for term in self.terms if degree == term.degree), None)
 
   def __neg__(self):
     polynomial = self.copy()
@@ -124,7 +125,6 @@ class Polynomial:
     self.terms.sort(key=lambda term: term.degree, reverse=True)
 
   def simplify(self):  # Combine like terms
-    self.sort()
     i = len(self.terms)-1
     while i > 0:
       if self.terms[i] & self.terms[i-1]:
@@ -132,23 +132,9 @@ class Polynomial:
         if self.terms[i-1].coefficient == 0:
           del self.terms[i-1]
           i -= 1
-      print(self)
+        print(self)
       i -= 1
     self.degree = max(term.degree for term in self.terms)
-
-  # def normalize(self, degree=None):
-  #   self.sort()
-  #   new_terms = []
-  #   if degree == None:
-  #     degree = self.degree
-  #   else:
-  #     pass
-  #   for term in self.terms:
-
-  #     for n in range(degree-term.degree):
-  #       new_terms.append(Term(f''))
-  #       degree -= 1
-  #       pass
 
 
 class Equation:
@@ -156,8 +142,10 @@ class Equation:
   def __init__(self, string):
     string = string.replace(' ', '')
     str_left, str_right = string.split('=', 1)
+    print(str_left, str_right)
     self.left = Polynomial(str_left)
     self.right = Polynomial(str_right)
+    print(self.right[0].coefficient)
 
   def copy(self):
     return deepcopy(self)
@@ -210,23 +198,24 @@ class Equation:
     self.right -= other.right
     return self
 
-  def simplify(self):
+  def simplify(self, degree=None):
     self.left -= self.right
     self.right = Polynomial()
-    self.left.simplify()
+    self.left.simplify(degree)
 
 
-class SimplifiedEquation(Equation):
+class SimplifiedPolynomial(Polynomial):
 
-  def __init__(self, equation):
+  def __init__(self, equation, _degree=None):
     equation = equation.copy()
     equation.simplify()
-    self.left = equation.left
-    self.right = equation.right
-    self.terms = {self.left[degree] if degree in self.left else  for degree in range(self.left.degree-1, -1, -1)}
+    self.degree = equation.left.degree
+    self.terms = equation.left.terms
+    if _degree is not None: _degree = self.degree
+    self._terms = {degree: next(filter(lambda term: term.degree == degree, self.terms), Term(f'0x^{degree}')) for degree in range(_degree-1, -1, -1)}
 
-  def get(degree):
-    return 
+  def __getitem__(self, degree):
+    return self._terms.get(degree, None)
 
 
 
@@ -248,8 +237,10 @@ class LinearSystem(System):
     self.equation1, self.equation2 = self.equations
 
   def simplify(self):
-    self.equation1.simplify()
-    self.equation2.simplify()
+    self.degree = max(self.poly1.degree, self.poly2.degree)
+    self.poly1 = SimplifiedPolynomial(self.equation1, self.degree)
+    self.poly2 = SimplifiedPolynomial(self.equation2, self.degree)
+    uwu
 
   def solve(self):
     self.simplify()
