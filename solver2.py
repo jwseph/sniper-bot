@@ -7,14 +7,14 @@ class Term:  # Maybe add EXPR for verifying (also add to Polynomial too)
 
   def __init__(self, string='0'):
     string = string.replace(' ', '')
-    self.coefficient = int([*re.findall(r'^[\-\d]+(?:(?=[A-Za-z])|(?=$))(?!\^)', string), '1'][0]) if not re.match(r'-([A-Za-z])', string) else -1
-    self.variable = [*re.findall(r'[A-Za-z]+', string), None][0]
-    self.degree = int([*re.findall(r'(?<=\^)\d+', string), '1'][0])
+    self.coefficient = int(re.findall(r'-?\d+(?=\D|$)', string)[0]) if not re.match(r'^-?[^-\d]', string) else 1 if not string.startswith('-') else -1
+    self.variable = [*re.findall(r'[^-\d*].*', string), None][0]
 
   def copy(self):
     return copy(self)
 
   def __repr__(self):
+    return f"{self.coefficient}{self.variable}"
     return f"{self.coefficient if self.coefficient != 1 else ''}{self.variable if self.variable != None else ''}{''.join('⁰¹²³⁴⁵⁶⁷⁸⁹'[self.degree//10**i%10] for i in range(len(str(self.degree))-1, -1, -1)) if self.variable != None and self.degree != 1 else ''}"
 
   def __neg__(self):
@@ -55,13 +55,13 @@ class Term:  # Maybe add EXPR for verifying (also add to Polynomial too)
     return self
 
   def __and__(self, other):
-    return self.variable == other.variable and self.degree == other.degree
+    return self.variable == other.variable
 
 
 
 class Polynomial:
 
-  def __init__(self, string='0'):
+  def __init__(self, string=''):
     string = string.replace(' ', '')
     str_terms = re.split(r'(?<=[A-Za-z\d])(?:\+|(?=\-))', string)
     print(str_terms)
@@ -142,8 +142,10 @@ class Equation:
   def __init__(self, string):
     string = string.replace(' ', '')
     str_left, str_right = string.split('=', 1)
+    print(str_left, str_right)
     self.left = Polynomial(str_left)
     self.right = Polynomial(str_right)
+    print(self.right[0].coefficient)
 
   def copy(self):
     return deepcopy(self)
@@ -196,10 +198,10 @@ class Equation:
     self.right -= other.right
     return self
 
-  def simplify(self):
+  def simplify(self, degree=None):
     self.left -= self.right
     self.right = Polynomial()
-    self.left.simplify()
+    self.left.simplify(degree)
 
 
 class SimplifiedPolynomial(Polynomial):
@@ -209,52 +211,41 @@ class SimplifiedPolynomial(Polynomial):
     equation.simplify()
     self.degree = equation.left.degree
     self.terms = equation.left.terms
-    if _degree is None: _degree = self.degree
-    self._terms_degree = {degree: next(filter(lambda term: term.degree == degree, self.terms), Term(f'0x^{degree}')) for degree in range(_degree-1, -1, -1)}
-    self._terms_variable = {term.variable: term for term in self.terms}
+    if _degree is not None: _degree = self.degree
+    self._terms = {degree: next(filter(lambda term: term.degree == degree, self.terms), Term(f'0x^{degree}')) for degree in range(_degree-1, -1, -1)}
 
-  def __getitem__(self, key):
-    if isinstance(key, str):
-      return self._terms_variable.get(key, None)
-    return self._terms_degree.get(key, None)
+  def __getitem__(self, degree):
+    return self._terms.get(degree, None)
 
 
 
+class System:
 
-poly1 = SimplifiedPolynomial(Equation(input()))
-poly2 = SimplifiedPolynomial(Equation(input()))
-# poly1.degree
+  def __init__(self, string):
+    string = string.replace(' ', '')
+    self.equations = [Equation(equation) for equation in string.split('\n')]
 
-
-
-
-# class System:
-
-#   def __init__(self, string):
-#     string = string.replace(' ', '')
-#     self.equations = [Equation(equation) for equation in string.split('\n')]
-
-#   def __repr__(self):
-#     return '\n'.join(map(str, self.equations))
+  def __repr__(self):
+    return '\n'.join(map(str, self.equations))
 
 
-# class LinearSystem(System):
+class LinearSystem(System):
 
-#   def __init__(self, string):
-#     super().__init__(string)
-#     assert len(self.equations) == 2, "Linear system must have two equations"
-#     self.equation1, self.equation2 = self.equations
+  def __init__(self, string):
+    super().__init__(string)
+    assert len(self.equations) == 2, "Linear system must have two equations"
+    self.equation1, self.equation2 = self.equations
 
-#   def simplify(self):
-#     self.degree = max(self.poly1.degree, self.poly2.degree)
-#     self.poly1 = SimplifiedPolynomial(self.equation1, self.degree)
-#     self.poly2 = SimplifiedPolynomial(self.equation2, self.degree)
-#     uwu
+  def simplify(self):
+    self.degree = max(self.poly1.degree, self.poly2.degree)
+    self.poly1 = SimplifiedPolynomial(self.equation1, self.degree)
+    self.poly2 = SimplifiedPolynomial(self.equation2, self.degree)
+    uwu
 
-#   def solve(self):
-#     self.simplify()
+  def solve(self):
+    self.simplify()
 
-#     pass
+    pass
 
 
 
