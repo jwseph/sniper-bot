@@ -257,3 +257,22 @@ class LinearSystem(System):
 
 
 
+
+
+
+
+
+
+
+
+
+
+# import re
+
+# string = input('> ').replace(' ', '')
+# string = re.sub(r'(?:(?<=[-+])|(?<=^))(?=[^-\d])', '1', string)
+# str_terms = re.split(r'(?<=[A-Za-z\d])(?:\+|(?=\-))', string)
+# assert all(re.match(r'-?\d+\*?[xy]?', str_term) for str_term in str_terms), 'bruh'
+# terms = {(int(re.search(r'-?\d+(?=\D|$)', str_term).group()), re.search(r'[^-\d*].*|$', str_term).group()) for str_term in str_terms}
+
+# print(terms)

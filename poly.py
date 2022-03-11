@@ -5,7 +5,7 @@ class Point:
     self.x, self.y = iterable
   def __repr__(self):
     return f"({self.x}, {self.y})"
-  def __pow__(self, point):  # Determinant
+  def __pow__(self, point):  # Cross product
     return self.x*point.y-point.x*self.y
   def __or__(self, point):  # Pythagorean
     return ((point.x-self.x)**2+(point.y-self.y)**2)**0.5
