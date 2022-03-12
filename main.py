@@ -215,6 +215,7 @@ IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif']
 intents = discord.Intents.default()
 intents.members = True
 intents.messages = True
+intents.message_content = True
 bot = discord.Client(intents=intents, status=discord.Status.dnd, activity=discord.Activity(name='"snipe"', type=2))
 history = {}
 admins = [557233155866886184]
