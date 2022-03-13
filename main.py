@@ -8,6 +8,7 @@ from contextlib import redirect_stdout
 import requests  # For kanye quotes
 from bs4 import BeautifulSoup
 import json
+import asyncio
 
 from uwuify import uwuify
 
@@ -434,6 +435,19 @@ async def on_message(message):
   # User wants to uwuify text
   elif message.content.startswith('pls uwuify '):
     await message.channel.send(uwuify(message.content[11:]))
+
+
+  # User wants to be reminded
+  elif message.content.startswith('pls remind '):
+    try:
+      time, text = message.content[11:].split(' ', 1)
+      number = float(time[:-1])
+      seconds = number*{'s': 1, 'm': 60, 'h': 3600, 'd': 86400, 'w': 604800, 'y': 31557600}[time[-1].lower()]
+    except:
+      await message.channel.send("Sorry, I couldn't understand")
+      return
+    await asyncio.sleep(seconds)
+    await message.channel.send(f'<@{message.author.id}> {text}')
 
 
   # Kanye is in words
