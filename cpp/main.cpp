@@ -119,7 +119,7 @@ int main() {
       // Has the player won?
       if (words.size() == 1 && all_of(display_word.begin(), display_word.end(), [](const char &letter) {return letter != '-';})) {
         cout << "You win! The word was: " << *words.begin() << endl;
-        return EXIT_SUCCESS;
+        return 0;
       }
     }
 
@@ -131,7 +131,7 @@ int main() {
   advance(it, rand()%words.size());
   cout << "You lose! The word was: " << *it;
 
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 
