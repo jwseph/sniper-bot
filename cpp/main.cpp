@@ -6,6 +6,7 @@
 #include <map>
 #include <algorithm>
 #include <vector>
+#include "dictionary.cpp"
 using namespace std;
 
 typedef int Match;  // See GetMatch
@@ -13,7 +14,7 @@ typedef int Match;  // See GetMatch
 Match GetMatch(const string &word);  // Returns binary match, i.e. 's' & "business" -> 0b00100011 (which is the same as 0b100011)
 bool isMatch(const string &word, Match match);  // Returns whether or not a word matches a match
 
-ifstream fin("dictionary.txt");
+// ifstream fin("dictionary.txt");
 char guess;  // For temporarily saving user input
 vector<string> words;  // List of words
 set<int> lengths;  // All possible lengths of words
@@ -69,13 +70,10 @@ int main() {
   while (guess != 'y' && guess != 'n');
   show_total = (guess == 'y');
 
-  cout << "\n\n";
-
   // While there are still guesses left
   for (;guesses > 0; --guesses) {
 
-    cout << "You have " << guesses << " guesses left.\n";
-    cout << "Used letters:";
+    cout << "\n\nYou have " << guesses << " guesses left.\nUsed letters:";
 
     // Enter guessed letters
     for (const char &letter: letters) {
@@ -122,8 +120,6 @@ int main() {
         return 0;
       }
     }
-
-    cout << '\n' << endl;
   }
 
   // Print out random possible word on loss (below code is compatible with any container)

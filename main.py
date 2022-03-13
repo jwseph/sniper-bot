@@ -446,6 +446,7 @@ async def on_message(message):
     except:
       await message.channel.send("Sorry, I couldn't understand")
       return
+    await message.channel.send(f"Reminding in {seconds} seconds...")
     await asyncio.sleep(seconds)
     await message.channel.send(f'<@{message.author.id}> {text}')
 
