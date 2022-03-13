@@ -5,16 +5,17 @@
 #include <set>
 #include <map>
 #include <algorithm>
+#include <vector>
 using namespace std;
 
 typedef int Match;  // See GetMatch
 
 Match GetMatch(const string &word);  // Returns binary match, i.e. 's' & "business" -> 0b00100011 (which is the same as 0b100011)
-bool isMatch(const string &word, Match &match);  // Returns whether or not a word matches a match
+bool isMatch(const string &word, Match match);  // Returns whether or not a word matches a match
 
 ifstream fin("dictionary.txt");
 char guess;  // For temporarily saving user input
-set<string> words;  // List of words
+vector<string> words;  // List of words
 set<int> lengths;  // All possible lengths of words
 set<char> letters;  // List of guessed letters
 int length;  // Length that the user chose
@@ -27,7 +28,7 @@ int main() {
 
   // Add words to a set for easy removal
   for (string word; fin >> word;) {
-    words.insert(word);
+    words.push_back(word);
     lengths.insert(word.length());
   }
 
@@ -41,7 +42,14 @@ int main() {
   while (lengths.find(length) == lengths.end());
 
   // Remove words with incorrect lengths
-  words.erase(remove_if(words.begin(), words.end(), [](const string &word){return word.length() == length;}), words.end());
+  words.erase(
+    remove_if(
+      words.begin(),
+      words.end(),
+      [](const string word)->bool {return word.size() != length;}
+    ),
+    words.end()
+  );
 
   // Set display word
   display_word = string(length, '-');
@@ -61,10 +69,12 @@ int main() {
   while (guess != 'y' && guess != 'n');
   show_total = (guess == 'y');
 
+  cout << "\n\n";
+
   // While there are still guesses left
   for (;guesses > 0; --guesses) {
 
-    cout << "You have " << guesses+1 << " guesses left.\r\n";
+    cout << "You have " << guesses << " guesses left.\n";
     cout << "Used letters:";
 
     // Enter guessed letters
@@ -77,12 +87,13 @@ int main() {
     do {
       cout << "Enter guess: ";
       cin >> guess;
-      if (islower(guess)) guess -= 32;
+      if (isupper(guess)) guess += 32;
     }
     while (!isalpha(guess) || letters.find(guess) != letters.end());
+    letters.insert(guess);
 
     // Fill in map with number of matches
-    map<Match, int, greater<Match>> matches;
+    map<Match, int> matches;
     for (const string &word: words) {
       Match match = GetMatch(word);
       auto it = matches.find(match);
@@ -95,26 +106,27 @@ int main() {
     else {
 
       // Get match with most matches (already sorted greatest to least) and print stuff
-      Match best_match = matches.begin()->first;
-      if (show_total) cout << "There are now " << matches.begin()->second << " possible words";
+      auto it = max_element(matches.begin(), matches.end(), [](const auto &word1, const auto &word2) {return word2.second > word1.second;});
+      Match best_match = it->first;
+      if (show_total && matches.size() > 1) cout << "There are now " << it->second << " possible words\n";
 
       // Filter words based on best match
       words.erase(remove_if(words.begin(), words.end(), [&](const string &word){return !isMatch(word, best_match);}), words.end());
 
+      // Update display word
+      for (int i = 0; i < length; i++) if (best_match>>(length-1-i)&1) display_word[i] = guess;
+
       // Has the player won?
-      if (words.size() == 1) {
+      if (words.size() == 1 && all_of(display_word.begin(), display_word.end(), [](const char &letter) {return letter != '-';})) {
         cout << "You win! The word was: " << *words.begin() << endl;
         return EXIT_SUCCESS;
       }
-
-      // Update display word
-      for (int i = 0; i < length; i++) if (best_match&1<<i) display_word[i] = guess;
     }
 
     cout << '\n' << endl;
   }
 
-  // Print out random possible word on loss
+  // Print out random possible word on loss (below code is compatible with any container)
   auto it = words.begin();
   advance(it, rand()%words.size());
   cout << "You lose! The word was: " << *it;
@@ -133,8 +145,7 @@ Match GetMatch(const string &word) {
 }
 
 
-bool isMatch(const string &word, Match &match) {
-  for (int i = 0; i < length; i++) if ((word[i] == guess) != (match&1<<i)) return false;
+bool isMatch(const string &word, Match match) {
+  for (int i = 0; i < length; i++) if ((word[i] == guess) != (match>>(length-1-i)&1)) return false;
   return true;
 }
-
