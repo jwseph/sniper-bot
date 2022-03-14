@@ -474,9 +474,7 @@ async def on_raw_message_action(payload):
 
     message = payload.cached_message
 
-    if message.author == bot.user:
-      print(message.components)
-      # return  # Don't save if message has buttons
+    if message.author == bot.user and len(message.components) > 0: return  # Don't save if message has buttons
 
     if message.author.id == 674785149556097054: return  # Aiden
 
