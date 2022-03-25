@@ -300,63 +300,79 @@ async def on_message(message):
         await message.channel.send('Message is unavailable (bot is being updated).')
         return
 
+      try:
 
-      # Resend exact message if message is embed sent by this bot (kinda useless ngl)
-      if ctx.author == bot.user and len(ctx.embeds) != 0:
-        embed = ctx.embeds[0]
+        # Resend exact message if message is embed sent by this bot (kinda useless ngl)
+        if ctx.author == bot.user and len(ctx.embeds) != 0:
+          embed = ctx.embeds[0]
+          # Message has attachments
+          if len(ctx.attachments) != 0:
+            attachment = ctx.attachments[0]
+            # Save attachment
+            await attachment.save('tmp/'+attachment.filename)
+            # Send embed with attachment
+            await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
+            # Remove temporary file
+            os.remove('tmp/'+attachment.filename)
+          # Message has no attachments
+          else:
+            # Resend this bot's embed
+            await message.channel.send(embed=embed)
+          return  # Message has just been sniped
+
+
+        # Add data to embed
+        embed = discord.Embed(description=ctx.content, color=ctx.color) # 0xbb0a1e
+        try: embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
+        except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
+        embed.timestamp = ctx.created_at
+
         # Message has attachments
         if len(ctx.attachments) != 0:
+
           attachment = ctx.attachments[0]
+
           # Save attachment
           await attachment.save('tmp/'+attachment.filename)
-          # Send embed with attachment
-          await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
+
+          # Put attachment inside of embed if it is image
+          if any(attachment.filename.endswith(ext) for ext in IMAGE_EXTENSIONS):
+            embed.set_image(url='attachment://'+attachment.filename)
+            await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
+            for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
+
+          # Send separately if attachment is not image
+          else:
+            await message.channel.send(embed=embed)
+            for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
+            await message.channel.send(file=discord.File('tmp/'+attachment.filename))
+
           # Remove temporary file
           os.remove('tmp/'+attachment.filename)
+
         # Message has no attachments
         else:
-          # Resend this bot's embed
+
+          # Send this bot's embed
           await message.channel.send(embed=embed)
-        return  # Message has just been sniped
 
+          # Send deleted message's embeds
+          for embed in ctx.embeds: await message.channel.send(embed=embed)
 
-      # Add data to embed
-      embed = discord.Embed(description=ctx.content, color=ctx.color) # 0xbb0a1e
-      try: embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
-      except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
-      embed.timestamp = ctx.created_at
+      except discord.errors.Forbidden as e:
 
-      # Message has attachments
-      if len(ctx.attachments) != 0:
+        # Put message back in cache if it was sniped while bot was muted or something
+        if message.channel.id in history:
 
-        attachment = ctx.attachments[0]
+          # Insert at position 0 if array exists
+          history[message.channel.id].insert(0, ctx)
 
-        # Save attachment
-        await attachment.save('tmp/'+attachment.filename)
-
-        # Put attachment inside of embed if it is image
-        if any(attachment.filename.endswith(ext) for ext in IMAGE_EXTENSIONS):
-          embed.set_image(url='attachment://'+attachment.filename)
-          await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
-          for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
-
-        # Send separately if attachment is not image
         else:
-          await message.channel.send(embed=embed)
-          for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
-          await message.channel.send(file=discord.File('tmp/'+attachment.filename))
 
-        # Remove temporary file
-        os.remove('tmp/'+attachment.filename)
+          # Create a new array for channel with message
+          history[message.channel.id] = [ctx]
 
-      # Message has no attachments
-      else:
 
-        # Send this bot's embed
-        await message.channel.send(embed=embed)
-
-        # Send deleted message's embeds
-        for embed in ctx.embeds: await message.channel.send(embed=embed)
 
     # No message to snipe
     else: await message.channel.send("There's nothing to snipe!")
