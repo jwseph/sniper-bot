@@ -148,7 +148,7 @@ class SchoologyView(discord.ui.View):
       f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
     embed.set_image(url=student.image)
     embed.set_footer(text=f'{self.i+1} / {len(self.students)}')
-    await interaction.message.edit(embed=embed, view=self)
+    await interaction.response.edit_message(embed=embed, view=self)
 
   def disable_buttons(self):
     self.frst_button.disabled = \
@@ -167,28 +167,24 @@ class SchoologyView(discord.ui.View):
     self.i -= 1
     self.disable_buttons()
     await self.update(interaction)
-    return
 
   async def next_callback(self, interaction):
     # if interaction.user != self.author: return
     self.i += 1
     self.disable_buttons()
     await self.update(interaction)
-    return
 
   async def frst_callback(self, interaction):
     # if interaction.user != self.author: return
     self.i = 0
     self.disable_buttons()
     await self.update(interaction)
-    return
 
   async def last_callback(self, interaction):
     # if interaction.user != self.author: return
     self.i = len(self.students)-1
     self.disable_buttons()
     await self.update(interaction)
-    return
 
 
 def get_session(username=os.environ['MSDUSERNAME'], password=os.environ['MSDPASSWORD']):
