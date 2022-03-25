@@ -2,7 +2,7 @@ import cv2
 import os
 import ctypes
 
-os.system("color")
+os.system('color')
 
 video = cv2.VideoCapture('C:/Users/Jet_g/Downloads/rick.mp4')
 
