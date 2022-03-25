@@ -367,6 +367,7 @@ async def on_message(message):
           # Insert at position 0 if array exists
           history[message.channel.id].insert(0, ctx)
 
+        # Channel does not have a queue in history yet
         else:
 
           # Create a new array for channel with message
