@@ -493,12 +493,13 @@ async def on_message(message):
           'Ayo why you so mean',
           'Chill smh',
           "That's not very nice"
+          'L'
         ],
         'frustrated': [
           'Cool your jets',
-          'Give it a rest!',
           'Take it easy',
           'Take a chill pill!'
+          'Mald'
         ],
         'sad': [
           'Cope',
