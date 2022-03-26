@@ -508,7 +508,7 @@ async def on_message(message):
       analytics = analyze(message.content)
       tone = analytics['classifications'][0]
       if tone['class_name'] in tone_responses and tone['confidence'] > 0.82 and random.random() < 0.3:
-        await message.channel.send(random.choice(tone_responses))
+        await message.channel.send(random.choice(tone_responses[tone['class_name']]))
       print(analytics['classifications'][:3])
     except:
       pass
