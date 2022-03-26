@@ -491,6 +491,7 @@ async def on_message(message):
       analytics = analyze(message.content)
       if next((True for classification in analytics['classifications'] if classification['class_name'] == 'impolite' and classification['confidence'] > 0.85 and random.random() > 0.5), False):
         await message.channel.send('ayo chill')
+      print(analytics['classifications'][:3])
     except:
       pass
 
