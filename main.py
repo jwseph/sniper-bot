@@ -507,11 +507,8 @@ async def on_message(message):
       }
       analytics = analyze(message.content)
       tone = analytics['classifications'][0]
-      if tone['class_name'] in tone_responses and tone['confidence'] > 0.85 and random.random() < 0.3:
+      if tone['class_name'] in tone_responses and tone['confidence'] > 0.82 and random.random() < 0.3:
         await message.channel.send(random.choice(tone_responses))
-
-      if next((True for classification in analytics['classifications'] if classification['class_name'] == 'impolite' and classification['confidence'] > 0.85 and random.random() > 0.5), False):
-        await message.channel.send('ayo chill')
       print(analytics['classifications'][:3])
     except:
       pass
