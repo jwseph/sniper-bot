@@ -487,28 +487,31 @@ async def on_message(message):
 
   # Analyze text and possibly respnod
   else:
-    tone_responses = {
-      'impolite': {
-        'Ayo why you so mean',
-        'Chill smh',
-        "That's not very nice"
-      },
-      'frustrated': {
-        'Cool your jets',
-        'Give it a rest!',
-        'Take it easy',
-        'Take a chill pill!'
-      },
-      'sad': {
-        'Cope',
-        'Cry about it'
+    try:
+      tone_responses = {
+        'impolite': [
+          'Ayo why you so mean',
+          'Chill smh',
+          "That's not very nice"
+        ],
+        'frustrated': [
+          'Cool your jets',
+          'Give it a rest!',
+          'Take it easy',
+          'Take a chill pill!'
+        ],
+        'sad': [
+          'Cope',
+          'Cry about it'
+        ]
       }
-    }
-    analytics = analyze(message.content)
-    tone = analytics['classifications'][0]
-    if tone['class_name'] in tone_responses and tone['confidence'] > 0.82:
-      await message.channel.send(random.choice(tone_responses[tone['class_name']]))
-    print(analytics['classifications'][:3])
+      analytics = analyze(message.content)
+      tone = analytics['classifications'][0]
+      if tone['class_name'] in tone_responses and tone['confidence'] > 0.82 and random.random() < 0.25:
+        await message.channel.send(random.choice(tone_responses[tone['class_name']]))
+      print(analytics['classifications'][:3])
+    except:
+      return None
 
 
 
