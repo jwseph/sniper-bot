@@ -511,7 +511,7 @@ async def on_message(message):
         await message.channel.send(random.choice(tone_responses[tone['class_name']]))
       print(analytics['classifications'][:3])
     except:
-      return None
+      pass
 
 
 
