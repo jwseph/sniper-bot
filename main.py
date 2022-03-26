@@ -11,6 +11,7 @@ import json
 import asyncio
 
 from uwuify import uwuify
+from watson import analyze
 
 
 class Log:
@@ -481,6 +482,12 @@ async def on_message(message):
     embed.set_footer(text='- Kanye West')
 
     await message.channel.send(embed=embed)
+
+
+  # Analyze text and possibly respnod
+  else:
+    print(analyze(message.content))
+    # await message.channel.send(embed=embed)
 
 
 
