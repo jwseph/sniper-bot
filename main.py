@@ -9,6 +9,7 @@ import requests  # For kanye quotes
 from bs4 import BeautifulSoup
 import json
 import asyncio
+import random
 
 from uwuify import uwuify
 from watson import analyze
@@ -486,8 +487,12 @@ async def on_message(message):
 
   # Analyze text and possibly respnod
   else:
-    print(analyze(message.content))
-    # await message.channel.send(embed=embed)
+    try:
+      analytics = analyze(message.content)
+      if next((True for classification in analytics['classifications'] if classification['class_name'] == 'impolite' and classification['confidence'] > 0.85 and random.random() > 0.5), False):
+        await message.channel.send('ayo chill')
+    except:
+      pass
 
 
 
