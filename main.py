@@ -492,18 +492,18 @@ async def on_message(message):
         'impolite': [
           'Ayo why you so mean',
           'Chill smh',
-          "That's not very nice"
-          'L'
+          "That's not very nice",
+          'L',
         ],
         'frustrated': [
           'Cool your jets',
           'Take it easy',
-          'Take a chill pill!'
-          'Mald'
+          'Take a chill pill!',
+          'Mald',
         ],
         'sad': [
           'Cope',
-          'Cry about it'
+          'Cry about it',
         ]
       }
       analytics = analyze(message.content)
