@@ -499,8 +499,9 @@ async def on_message(message):
           ]
         },
         'frustrated': {
-          'confidence': 0.9,
-          'responses': ['Cool your jets',
+          'confidence': 0.89,
+          'responses': [
+            'Cool your jets',
             'Stop harshing the vibe',
             'Daddy chill',
             'Calm thy tits',
