@@ -489,29 +489,37 @@ async def on_message(message):
   else:
     try:
       tone_responses = {
-        'impolite': [
+        'impolite': {
+          'confidence': 0.91,
+          'responses': [
           "Didn't ask",
           'Omg pls stfu',
           'uwu',
           'L',
-        ],
-        'frustrated': [
-          'Cool your jets',
-          'Stop harshing the vibe',
-          'Daddy chill',
-          'Calm thy tits',
-          'Mald',
-        ],
-        'sad': [
-          'Cope',
-          'Cry about it',
-          'Fry about it',
-        ]
+          ]
+        },
+        'frustrated': {
+          'confidence': 0.92,
+          'responses': ['Cool your jets',
+            'Stop harshing the vibe',
+            'Daddy chill',
+            'Calm thy tits',
+            'Mald',
+          ]
+        },
+        'sad': {
+          'confidence': 0.88,
+          'responses': [
+            'Cope',
+            'Cry about it',
+            'Fry about it',
+          ]
+        }
       }
       analytics = analyze(message.content)
       tone = analytics['classifications'][0]
-      if tone['class_name'] in tone_responses and tone['confidence'] > 0.87 and random.random() < 0.2:
-        await message.channel.send(random.choice(tone_responses[tone['class_name']]))
+      if tone['class_name'] in tone_responses and tone['confidence'] > tone_responses[tone['class_name']]['confidence'] and random.random() < 0.15:
+        await message.channel.send(random.choice(tone_responses[tone['class_name']]['responses']))
       print(analytics['classifications'][:3])
     except:
       pass
