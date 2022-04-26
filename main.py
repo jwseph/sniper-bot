@@ -12,7 +12,6 @@ import asyncio
 import random
 
 from uwuify import uwuify
-from watson import analyze
 
 
 class Log:
@@ -139,7 +138,9 @@ class SchoologyView(discord.ui.View):
     self.prev_button.disabled = \
     self.next_button.disabled = \
     self.last_button.disabled = True
-    await self.message.edit(view=self)
+    try: await self.message.edit(view=self)
+    except discord.errors.NotFound: print("SchoologyView message was deleted")
+
 
   async def update(self, interaction):
     student = self.students[self.i]
@@ -485,45 +486,45 @@ async def on_message(message):
     await message.channel.send(embed=embed)
 
 
-  # Analyze text and possibly respnod
-  else:
-    try:
-      tone_responses = {
-        'impolite': {
-          'confidence': 0.9,
-          'responses': [
-          "Didn't ask",
-          'Omg pls stfu',
-          'uwu',
-          'L',
-          ]
-        },
-        'frustrated': {
-          'confidence': 0.89,
-          'responses': [
-            'Cool your jets',
-            'Stop harshing the vibe',
-            'Daddy chill',
-            'Calm thy tits',
-            'Mald',
-          ]
-        },
-        'sad': {
-          'confidence': 0.88,
-          'responses': [
-            'Cope',
-            'Cry about it',
-            'Fry about it',
-          ]
-        }
-      }
-      analytics = analyze(message.content)
-      tone = analytics['classifications'][0]
-      if tone['class_name'] in tone_responses and tone['confidence'] > tone_responses[tone['class_name']]['confidence'] and random.random() < 0.2:
-        await message.channel.send(random.choice(tone_responses[tone['class_name']]['responses']))
-      print(analytics['classifications'][:3])
-    except:
-      pass
+#   # Analyze text and possibly respnod
+#   else:
+#     try:
+#       tone_responses = {
+#         'impolite': {
+#           'confidence': 0.9,
+#           'responses': [
+#           "Didn't ask",
+#           'Omg pls stfu',
+#           'uwu',
+#           'L',
+#           ]
+#         },
+#         'frustrated': {
+#           'confidence': 0.89,
+#           'responses': [
+#             'Cool your jets',
+#             'Stop harshing the vibe',
+#             'Daddy chill',
+#             'Calm thy tits',
+#             'Mald',
+#           ]
+#         },
+#         'sad': {
+#           'confidence': 0.88,
+#           'responses': [
+#             'Cope',
+#             'Cry about it',
+#             'Fry about it',
+#           ]
+#         }
+#       }
+#       analytics = analyze(message.content)
+#       tone = analytics['classifications'][0]
+#       if tone['class_name'] in tone_responses and tone['confidence'] > tone_responses[tone['class_name']]['confidence'] and random.random() < 0.2:
+#         await message.channel.send(random.choice(tone_responses[tone['class_name']]['responses']))
+#       print(analytics['classifications'][:3])
+#     except:
+#       pass
 
 
 
