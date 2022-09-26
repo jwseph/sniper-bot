@@ -140,8 +140,7 @@ class SchoologyView(discord.ui.View):
     self.next_button.disabled = \
     self.last_button.disabled = True
     try: await self.message.edit(view=self)
-    except discord.errors.NotFound: print("SchoologyView message was deleted")
-
+    except discord.errors.NotFound: print("SchoologyView message was already deleted")
 
   async def update(self, interaction):
     student = self.students[self.i]
@@ -208,6 +207,52 @@ def get_session(username=os.environ['MSDUSERNAME'], password=os.environ['MSDPASS
 
   except:
     return None
+
+
+class MudaeView(discord.ui.View):
+
+  def __init__(self, student:Student):
+    super().__init__()
+    self.student = student
+    self.button = discord.ui.Button(emoji=':heart:')
+    self.button.callback = self.on_claim
+    self.add_item(self.button)
+    self.disable_buttons()
+
+  async def on_timeout(self):
+    self.button.disabled = True
+    try: await self.message.edit(view=self)
+    except discord.errors.NotFound: print("MudaeView message was already deleted")
+
+  async def update(self, interaction):
+    student = self.students[self.i]
+    embed = interaction.message.embeds[0]
+    embed.title = f'{student.name}'
+    embed.description = \
+      (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
+      f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
+    embed.set_image(url=student.image)
+    embed.set_footer(text=f'{self.i+1} / {len(self.students)}')
+    await interaction.response.edit_message(embed=embed, view=self)
+
+  def disable_buttons(self):
+    self.frst_button.disabled = \
+    self.prev_button.disabled = \
+    self.next_button.disabled = \
+    self.last_button.disabled = False
+    if self.i == 0:
+      self.frst_button.disabled = \
+      self.prev_button.disabled = True
+    if self.i == len(self.students)-1:
+      self.next_button.disabled = \
+      self.last_button.disabled = True
+
+  async def on_claim(self, interaction:discord.Interaction):
+    self.button.disabled = True
+    await self.update(interaction)
+    self.embed.set_footer('Why are you doing this', icon_url=interaction.user.display_avatar.url)
+    self.embed.color = 0x670d08
+    await interaction.response.edit_message(embed=self.embed, view=self)
 
 
 
@@ -433,6 +478,11 @@ async def on_message(message):
   
   # User wants to roll
   elif len(words) >= 2 and words[0] == 'pls' and words[1] in ['roll', 'r', 'kamiak', 'k', 'mariner', 'm']:
+
+    # Return if user is using command in dms
+    if isinstance(message.channel, discord.DMChannel):
+      await message.channel.send('This command can only be used from a server!')
+      return
     
     # Roll student
     if len(words) == 2:
@@ -442,7 +492,7 @@ async def on_message(message):
     else:
       school = ' '.join(words[2:]).title()
       if school not in data_school:
-        await message.channel.send('School could not be found. The command is `pls roll <school>` without the High/Middle School at the end')
+        await message.channel.send('School couldn\'t be found. The full command is `pls roll <school>` without the High/Middle School at the end.')
         return
       student = random.choice(data_school[school])
     
