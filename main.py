@@ -225,6 +225,10 @@ history = {}
 admins = [557233155866886184]
 # s = get_session()
 data = [Student(student) for student in json.load(open('data.json', 'r'))] # Schoology data
+data_school = {}  # Students per school
+for student in data:
+  if student.school not in data_school: data_school[student.school] = []
+  data_school[student.school].append(student)
 if not os.path.exists('tmp'): os.mkdir('tmp')
 
 
@@ -422,32 +426,36 @@ async def on_message(message):
       embed.set_footer(text=f'1 / {len(students)}')
       view = SchoologyView(students, message.author)
       view.message = await message.channel.send(embed=embed, view=view)
+  
+  
+  # User wants to roll
+  elif len(words) >= 2 and words[0] == 'pls' and words[1] in ['roll', 'rk', 'rm']:
+    
+    # Roll student
+    if len(words) == 2:
+      if words[1] == 'roll': student = random.choice(data)
+      elif words[1] == 'rk': student = random.choice(data_school['Kamiak'])
+      elif words[1] == 'rm': student = random.choice(data_school['Mariner'])
+    else:
+      school = ' '.join(words[2:]).title()
+      if school not in data_school:
+        await message.channel.send('School could not be found. The command is `pls roll <school>` without the High School at the end')
+        return
+      student = random.choice(data_school[school])
+    
+    # Send embed
+    embed = discord.Embed(color=0x202225)
+    embed.title = f'{student.name}'
+    embed.description = \
+      (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
+      f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
+    embed.set_image(url=student.image)
+    embed.set_footer(text=f'1 / {len(students)}')
+    await message.channel.send(embed=embed)
+    # view = SchoologyView(students, message.author)
+    # view.message = await message.channel.send(embed=embed, view=view)
 
-
-    # query = " ".join(words[2:])
-    # if len(query) < 3:
-    #   await message.channel.send('Please use at least 3 letters')
-
-    # else:
-    #   soup = BeautifulSoup(s.get(f'https://mukilteo.schoology.com/search/user?s={query}').content, features='lxml')
-    #   if soup.select_one('#main-inner > div.item-list > ul > li.search-summary.first') is None:
-    #     await message.channel.send("That person doesn't exist!")
-    #   else:
-    #     students = [
-    #       Student(soup=student)
-    #       for student in soup.select('#main-inner > div.item-list > ul > li.search-summary > div')
-    #     ]
-        # student = students[0]
-
-        # embed = discord.Embed(color=0x202225)
-        # embed.title = f'{student.name} (1/{len(students)})'
-        # embed.set_image(url=student.image)
-        # embed.set_footer(text=student.school)
-
-        # view = SchoologyView(students, message.author)
-        # view.message = await message.channel.send(embed=embed, view=view)
-
-
+    
   # User wants to uwu text
   elif message.content.startswith('pls uwu '):
     await message.channel.send(uwuify(message.content[8:]))
