@@ -432,13 +432,13 @@ async def on_message(message):
 
   
   # User wants to roll
-  elif len(words) >= 2 and words[0] == 'pls' and words[1] in ['roll', 'r', 'marry', 'm', 'rk', 'rm']:
+  elif len(words) >= 2 and words[0] == 'pls' and words[1] in ['roll', 'r', 'kamiak', 'k', 'mariner', 'm']:
     
     # Roll student
     if len(words) == 2:
-      if words[1] in ['roll', 'r', 'marry', 'm']: student = random.choice(data)
-      elif words[1] == 'rk': student = random.choice(data_school['Kamiak'])
-      elif words[1] == 'rm': student = random.choice(data_school['Mariner'])
+      if words[1] in ['roll', 'r']: student = random.choice(data)
+      elif words[1] in ['kamiak', 'k']: student = random.choice(data_school['Kamiak'])
+      elif words[1] in ['mariner', 'm']: student = random.choice(data_school['Mariner'])
     else:
       school = ' '.join(words[2:]).title()
       if school not in data_school:
