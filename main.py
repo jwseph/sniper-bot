@@ -12,6 +12,7 @@ import asyncio
 import random
 
 from uwuify import uwuify
+from rtdb import ref
 
 
 class Log:
@@ -419,41 +420,45 @@ async def on_message(message):
       student = students[0]
       embed = discord.Embed(color=0x202225)
       embed.title = f'{student.name}'
-      embed.description = \
-        (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
-        f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
+      embed.description = ''.join([
+        f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})\n' if student.id is not None else '',
+        f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})',
+      ])
       embed.set_image(url=student.image)
       embed.set_footer(text=f'1 / {len(students)}')
       view = SchoologyView(students, message.author)
       view.message = await message.channel.send(embed=embed, view=view)
   
+
   
   # User wants to roll
-  elif len(words) >= 2 and words[0] == 'pls' and words[1] in ['roll', 'rk', 'rm']:
+  elif len(words) >= 2 and words[0] == 'pls' and words[1] in ['roll', 'r', 'marry', 'm', 'rk', 'rm']:
     
     # Roll student
     if len(words) == 2:
-      if words[1] == 'roll': student = random.choice(data)
+      if words[1] in ['roll', 'r', 'marry', 'm']: student = random.choice(data)
       elif words[1] == 'rk': student = random.choice(data_school['Kamiak'])
       elif words[1] == 'rm': student = random.choice(data_school['Mariner'])
     else:
       school = ' '.join(words[2:]).title()
       if school not in data_school:
-        await message.channel.send('School could not be found. The command is `pls roll <school>` without the High School at the end')
+        await message.channel.send('School could not be found. The command is `pls roll <school>` without the High/Middle School at the end')
         return
       student = random.choice(data_school[school])
     
     # Send embed
-    embed = discord.Embed(color=0x202225)
+    embed = discord.Embed(color=0xff9c2c)
     embed.title = f'{student.name}'
     embed.description = \
       (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
-      f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
+      f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'+'\n'\
+      f'React with any emoji to claim!'
     embed.set_image(url=student.image)
     # embed.set_footer(text=f'1 / {len(students)}')
     await message.channel.send(embed=embed)
     # view = SchoologyView(students, message.author)
     # view.message = await message.channel.send(embed=embed, view=view)
+
 
     
   # User wants to uwu text

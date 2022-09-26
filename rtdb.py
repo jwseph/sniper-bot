@@ -17,4 +17,4 @@ cert = {
 
 firebase_admin.initialize_app(credentials.Certificate(cert), {'databaseURL': 'https://sniper-mudae-default-rtdb.firebaseio.com'})
 
-claims = db.reference('/claims')
+ref = db.reference('/')
