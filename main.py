@@ -238,7 +238,7 @@ intents.message_content = True
 bot = discord.Client(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
 history = {}
 admins = [557233155866886184]
-data = [Student(student) for student in json.load(open('data2.json', 'r')).values()] # Schoology data
+data = [Student(student) for student in json.load(open('data.json', 'r')).values()] # Schoology data
 data_school = {}  # Students per school
 for student in data:
   if student.school[-1] not in data_school: data_school[student.school[-1]] = []
