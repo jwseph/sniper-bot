@@ -214,7 +214,7 @@ class MudaeView(discord.ui.View):
 
   async def on_claim(self, interaction:discord.Interaction):
     self.button.disabled = True
-    self.embed.set_footer('Why are you doing this', icon_url=interaction.user.display_avatar.url)
+    self.embed.set_footer(text='Why are you doing this', icon_url=interaction.user.display_avatar.url)
     self.embed.color = 0x670d08
     await interaction.response.edit_message(embed=self.embed, view=self)
 
