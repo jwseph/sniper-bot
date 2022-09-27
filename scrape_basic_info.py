@@ -21,7 +21,7 @@ SCHOOL_MAP = {
   'Columbia Elementary School': 'Columbia',
   'Community Based Transition Center': 'CBTC',
   'Discovery Elementary School': 'Discovery',
-  'ECEAP': 'ECEAP',
+  'Early Childhood Ed. & Assistance': 'ECEAP',
   'Endeavour Elementary School': 'Endeavour',
   'Explorer Middle School': 'Explorer',
   'Fairmount Elementary School': 'Fairmount',
