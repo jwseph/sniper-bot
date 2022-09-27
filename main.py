@@ -133,7 +133,7 @@ class SchoologyView(discord.ui.View):
     self.add_item(self.next_button)
     # self.add_item(self.last_button)
     self.disable_buttons()
-    self.make_embed()
+    self.update_embed()
 
   async def on_timeout(self):
     self.frst_button.disabled = \
@@ -143,7 +143,7 @@ class SchoologyView(discord.ui.View):
     try: await self.message.edit(view=self)
     except discord.errors.NotFound: print("SchoologyView message was already deleted")
 
-  def make_embed(self):
+  def update_embed(self):
     student = self.students[self.i]
     self.embed.title = f'{student.name}'
     self.embed.description = \
@@ -153,7 +153,7 @@ class SchoologyView(discord.ui.View):
     self.embed.set_footer(text=f'{self.i+1} / {len(self.students)}')
 
   async def update(self, interaction):
-    self.make_embed()
+    self.update_embed()
     await interaction.response.edit_message(embed=self.embed, view=self)
 
   def disable_buttons(self):
@@ -198,7 +198,7 @@ class MudaeView(discord.ui.View):
   def __init__(self, student:Student):
     super().__init__()
     self.student = student
-    self.button = discord.ui.Button(label=':heart:')
+    self.button = discord.ui.Button(label='❤️')
     self.button.callback = self.on_claim
     self.add_item(self.button)
     # Create embed
