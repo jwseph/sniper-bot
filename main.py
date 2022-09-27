@@ -190,25 +190,6 @@ class SchoologyView(discord.ui.View):
     await self.update(interaction)
 
 
-def get_session(username=os.environ['MSDUSERNAME'], password=os.environ['MSDPASSWORD']):
-
-  try:
-    # Login
-    schoology_resp = requests.get('https://mukilteo.schoology.com')
-    schoology_soup = BeautifulSoup(schoology_resp.content, features='lxml')
-    login_resp = requests.post('https://sts.mukilteo.wednet.edu'+schoology_soup.find('form', {'id': 'loginForm'})['action'], {'UserName': username, 'Password': password})
-    login_soup = BeautifulSoup(login_resp.content, features='lxml')
-    login_soup_SAMLResponse = login_soup.find('form').find('input', {'name': 'SAMLResponse'})['value']
-
-    s = requests.session()
-    s.post('https://mukilteo.schoology.com/login/saml/receive', {'SAMLResponse': login_soup_SAMLResponse})
-
-    return Session(s)
-
-  except:
-    return None
-
-
 class MudaeView(discord.ui.View):
 
   def __init__(self, student:Student):
@@ -218,34 +199,19 @@ class MudaeView(discord.ui.View):
     self.button.callback = self.on_claim
     self.add_item(self.button)
     self.disable_buttons()
+    # Create embed
+    self.embed = discord.Embed(color=0xff9c2c)
+    self.embed.title = f'{student.name}'
+    self.embed.description = \
+      (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
+      f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'+'\n'\
+      f'Click the button to claim!'
+    self.embed.set_image(url=student.image)
 
   async def on_timeout(self):
     self.button.disabled = True
     try: await self.message.edit(view=self)
     except discord.errors.NotFound: print("MudaeView message was already deleted")
-
-  async def update(self, interaction):
-    student = self.students[self.i]
-    embed = interaction.message.embeds[0]
-    embed.title = f'{student.name}'
-    embed.description = \
-      (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
-      f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
-    embed.set_image(url=student.image)
-    embed.set_footer(text=f'{self.i+1} / {len(self.students)}')
-    await interaction.response.edit_message(embed=embed, view=self)
-
-  def disable_buttons(self):
-    self.frst_button.disabled = \
-    self.prev_button.disabled = \
-    self.next_button.disabled = \
-    self.last_button.disabled = False
-    if self.i == 0:
-      self.frst_button.disabled = \
-      self.prev_button.disabled = True
-    if self.i == len(self.students)-1:
-      self.next_button.disabled = \
-      self.last_button.disabled = True
 
   async def on_claim(self, interaction:discord.Interaction):
     self.button.disabled = True
@@ -269,7 +235,6 @@ intents.message_content = True
 bot = discord.Client(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
 history = {}
 admins = [557233155866886184]
-# s = get_session()
 data = [Student(student) for student in json.load(open('data.json', 'r'))] # Schoology data
 data_school = {}  # Students per school
 for student in data:
@@ -497,17 +462,8 @@ async def on_message(message):
       student = random.choice(data_school[school])
     
     # Send embed
-    embed = discord.Embed(color=0xff9c2c)
-    embed.title = f'{student.name}'
-    embed.description = \
-      (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
-      f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'+'\n'\
-      f'React with any emoji to claim!'
-    embed.set_image(url=student.image)
-    # embed.set_footer(text=f'1 / {len(students)}')
-    await message.channel.send(embed=embed)
-    # view = SchoologyView(students, message.author)
-    # view.message = await message.channel.send(embed=embed, view=view)
+    view = MudaeView(student)
+    view.message = await message.channel.send(embed=view.embed, view=view)
 
 
     
@@ -656,10 +612,6 @@ def mem_clear():
   # Remove files from temp to free storage
   for filename in os.listdir('tmp'):
       os.remove('tmp/'+filename)
-
-  # Create new session
-  global s
-  s = get_session()
 
 
 # Start clearing memory (recursive thread)
