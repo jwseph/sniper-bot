@@ -133,6 +133,7 @@ class SchoologyView(discord.ui.View):
     self.add_item(self.next_button)
     # self.add_item(self.last_button)
     self.disable_buttons()
+    self.make_embed()
 
   async def on_timeout(self):
     self.frst_button.disabled = \
@@ -142,16 +143,18 @@ class SchoologyView(discord.ui.View):
     try: await self.message.edit(view=self)
     except discord.errors.NotFound: print("SchoologyView message was already deleted")
 
-  async def update(self, interaction):
+  def make_embed(self):
     student = self.students[self.i]
-    embed = interaction.message.embeds[0]
-    embed.title = f'{student.name}'
-    embed.description = \
+    self.embed.title = f'{student.name}'
+    self.embed.description = \
       (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
       f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
-    embed.set_image(url=student.image)
-    embed.set_footer(text=f'{self.i+1} / {len(self.students)}')
-    await interaction.response.edit_message(embed=embed, view=self)
+    self.embed.set_image(url=student.image)
+    self.embed.set_footer(text=f'{self.i+1} / {len(self.students)}')
+
+  async def update(self, interaction):
+    self.make_embed()
+    await interaction.response.edit_message(embed=self.embed, view=self)
 
   def disable_buttons(self):
     self.frst_button.disabled = \
@@ -214,8 +217,9 @@ class MudaeView(discord.ui.View):
 
   async def on_claim(self, interaction:discord.Interaction):
     self.button.disabled = True
-    self.embed.set_footer(text='Why are you doing this', icon_url=interaction.user.display_avatar.url)
     self.embed.color = 0x670d08
+    self.embed.description = self.embed.description.replace('\nClick the button to claim!', '')
+    self.embed.set_footer(text=f'Belongs to {interaction.user.display_name}', icon_url=interaction.user.display_avatar.url)
     await interaction.response.edit_message(embed=self.embed, view=self)
 
 
@@ -425,17 +429,8 @@ async def on_message(message):
     if len(students) == 0:
       await message.channel.send("That person doesn't exist!")
     else:
-      student = students[0]
-      embed = discord.Embed(color=0x202225)
-      embed.title = f'{student.name}'
-      embed.description = ''.join([
-        f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})\n' if student.id is not None else '',
-        f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})',
-      ])
-      embed.set_image(url=student.image)
-      embed.set_footer(text=f'1 / {len(students)}')
       view = SchoologyView(students, message.author)
-      view.message = await message.channel.send(embed=embed, view=view)
+      view.message = await message.channel.send(embed=view.embed, view=view)
   
 
   
