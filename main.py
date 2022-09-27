@@ -448,8 +448,9 @@ async def on_message(message):
       elif words[1] in ['kamiak', 'k']: student = random.choice(data_school['Kamiak'])
       elif words[1] in ['mariner', 'm']: student = random.choice(data_school['Mariner'])
     else:
-      school = ' '.join(words[2:]).title()
-      if school not in data_school:
+      s = ' '.join(words[2:])
+      school = data_school.get(s.title(), data_school.get(s.upper(), None))
+      if school == None:
         await message.channel.send('School couldn\'t be found. The full command is `pls roll <school>` without the High/Middle School at the end.')
         return
       student = random.choice(data_school[school])
