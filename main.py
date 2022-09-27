@@ -198,7 +198,6 @@ class MudaeView(discord.ui.View):
     self.button = discord.ui.Button(emoji=':heart:')
     self.button.callback = self.on_claim
     self.add_item(self.button)
-    self.disable_buttons()
     # Create embed
     self.embed = discord.Embed(color=0xff9c2c)
     self.embed.title = f'{student.name}'
