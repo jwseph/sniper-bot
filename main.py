@@ -57,8 +57,8 @@ class Student:
     if 'soup' in kwargs:
       soup = kwargs['soup']
       self.name = soup.select_one('div.item-title > a').text
-      self.image = soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg')
-      self.school = soup.select_one('div.item-info > span.item-school').text
+      self.image = [soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg')]
+      self.school = [soup.select_one('div.item-info > span.item-school').text]
       self.url = 'https://mukilteo.schoology.com'+soup.select_one('div.item-title > a')['href']+'/info'
       self.id = None
     elif obj is not None:
@@ -149,8 +149,8 @@ class SchoologyView(discord.ui.View):
     self.embed.title = f'{student.name}'
     self.embed.description = \
       (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
-      f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'
-    self.embed.set_image(url=student.image)
+      f'School: [{student.school[-1]}]({SchoologyView.SCHOOL_URLS.get(student.school[-1], "https://www.mukilteoschools.org/")})'
+    self.embed.set_image(url=student.image[-1])
     self.embed.set_footer(text=f'{self.i+1} / {len(self.students)}')
 
   async def update(self, interaction):
@@ -207,9 +207,9 @@ class MudaeView(discord.ui.View):
     self.embed.title = f'{student.name}'
     self.embed.description = \
       (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
-      f'School: [{student.school}]({SchoologyView.SCHOOL_URLS.get(student.school, "https://www.mukilteoschools.org/")})'+'\n'\
+      f'School: [{student.school[-1]}]({SchoologyView.SCHOOL_URLS.get(student.school[-1], "https://www.mukilteoschools.org/")})'+'\n'\
       f'Click the button to claim!'
-    self.embed.set_image(url=student.image)
+    self.embed.set_image(url=student.image[-1])
 
   async def on_timeout(self):
     self.button.disabled = True
@@ -238,11 +238,11 @@ intents.message_content = True
 bot = discord.Client(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
 history = {}
 admins = [557233155866886184]
-data = [Student(student) for student in json.load(open('data.json', 'r'))] # Schoology data
+data = [Student(student) for student in json.load(open('data2.json', 'r'))] # Schoology data
 data_school = {}  # Students per school
 for student in data:
-  if student.school not in data_school: data_school[student.school] = []
-  data_school[student.school].append(student)
+  if student.school[-1] not in data_school: data_school[student.school[-1]] = []
+  data_school[student.school[-1]].append(student)
 if not os.path.exists('tmp'): os.mkdir('tmp')
 
 
