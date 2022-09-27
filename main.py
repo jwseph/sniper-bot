@@ -198,7 +198,7 @@ class MudaeView(discord.ui.View):
   def __init__(self, student:Student):
     super().__init__()
     self.student = student
-    self.button = discord.ui.Button(emoji='<:first:940169691425566741>')
+    self.button = discord.ui.Button(label=':heart:')
     self.button.callback = self.on_claim
     self.add_item(self.button)
     # Create embed
@@ -432,7 +432,6 @@ async def on_message(message):
       view = SchoologyView(students, message.author)
       view.message = await message.channel.send(embed=view.embed, view=view)
   
-
   
   # User wants to roll
   elif len(words) >= 2 and words[0] == 'pls' and words[1] in ['roll', 'r', 'kamiak', 'k', 'mariner', 'm']:
@@ -457,7 +456,6 @@ async def on_message(message):
     # Send embed
     view = MudaeView(student)
     view.message = await message.channel.send(embed=view.embed, view=view)
-
 
     
   # User wants to uwu text
