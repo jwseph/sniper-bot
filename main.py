@@ -415,7 +415,7 @@ async def on_message(message):
           for student in data
           for matches in [sum(
             sum(
-              (100 if len(param) == len(name) else 1)+200-(5*(param_i+1))
+              (10000 if len(param) == len(name) else 1)*(5*(len(query)-param_i))
               for name in student.name.lower().split(' ')
               if param in name
             )
