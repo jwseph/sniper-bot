@@ -133,6 +133,7 @@ class SchoologyView(discord.ui.View):
     self.add_item(self.next_button)
     # self.add_item(self.last_button)
     self.disable_buttons()
+    self.embed = discord.Embed(color=0x202225)
     self.update_embed()
 
   async def on_timeout(self):
