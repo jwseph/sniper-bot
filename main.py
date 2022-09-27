@@ -195,7 +195,7 @@ class MudaeView(discord.ui.View):
   def __init__(self, student:Student):
     super().__init__()
     self.student = student
-    self.button = discord.ui.Button(emoji='<:heart:>')
+    self.button = discord.ui.Button(emoji='<:first:940169691425566741>')
     self.button.callback = self.on_claim
     self.add_item(self.button)
     # Create embed
