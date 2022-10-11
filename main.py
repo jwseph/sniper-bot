@@ -513,8 +513,8 @@ async def on_message(message):
     width = image_data['width']
 
     embed = discord.Embed(color=int(color_str[1:], 16))
-    embed.title = 'Random waifu'
-    embed.description = f'Resolution: {width}x{height}\n[Image source]({source_url})'
+    embed.title = 'Random Waifu'
+    embed.description = f'[Image source]({source_url}) · {width}x{height}'
     embed.set_image(url=image_url)
     embed.set_footer(text='powered by waifu.im')
 
