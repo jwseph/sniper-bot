@@ -229,7 +229,8 @@ TOKEN = os.environ['TOKEN']
 CLEAR_LIMIT = datetime.timedelta(minutes=30)
 CLEAR_DELAY = datetime.timedelta(minutes=5)
 SNIPE_DELAY = datetime.timedelta(seconds=60)
-IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif']
+IMAGE_EXTENSIONS = '.png', '.jpg', '.jpeg', '.gif'
+WAIFU_TAGS = 'uniform', 'maid', 'waifu', 'oppai', 'selfies'
 
 intents = discord.Intents.default()
 intents.members = True
@@ -500,9 +501,9 @@ async def on_message(message):
 
   
   # 'pls waifu' command
-  elif words[:2] == ['pls', 'waifu'] or words[:2] == ['pls', 'w']:
-   
-    response = requests.get(r'https://api.waifu.im/random?selected_tags=waifu')
+  elif len(words) >= 2 and words[0] == 'pls' and words[1] in ['w', *WAIFU_TAGS]:
+    if words[1] == 'w': words[1] == 'waifu'
+    response = requests.get(r'https://api.waifu.im/random?selected_tags='+words[1])
     while not response.ok: response = requests.get(r'https://api.waifu.im/random?selected_tags=waifu')
     image_data = response.json()['images'][0]
 
