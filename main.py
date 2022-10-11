@@ -515,7 +515,7 @@ async def on_message(message):
     embed = discord.Embed(color=int(color_str[1:], 16))
     embed.title = f'[Source]({source_url})'
     embed.set_image(url=image_url)
-    embed.set_footer(f'{height}x{width}')
+    embed.set_footer(text=f'{height}x{width}')
 
     await message.channel.send(embed=embed) 
 
