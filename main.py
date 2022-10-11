@@ -230,7 +230,7 @@ CLEAR_LIMIT = datetime.timedelta(minutes=30)
 CLEAR_DELAY = datetime.timedelta(minutes=5)
 SNIPE_DELAY = datetime.timedelta(seconds=60)
 IMAGE_EXTENSIONS = '.png', '.jpg', '.jpeg', '.gif'
-WAIFU_TAGS = 'uniform', 'maid', 'waifu', 'oppai', 'selfies'
+WAIFU_TAGS = 'uniform', 'maid', 'waifu', 'oppai'
 
 intents = discord.Intents.default()
 intents.members = True
@@ -509,13 +509,12 @@ async def on_message(message):
 
     image_url = image_data['url']
     source_url = image_data['source']
-    color_str = image_data['dominant_color'][1:]
     height = image_data['height']
     width = image_data['width']
 
-    embed = discord.Embed(color=int(color_str[1:], 16))
-    embed.title = 'Random Waifu'
-    embed.description = f'[Image source]({source_url}) · {width}x{height}'
+    embed = discord.Embed(color=0x202225)
+    embed.title = f'Image Result'
+    embed.description = f'[Source]({source_url}) · {width}x{height}'
     embed.set_image(url=image_url)
     embed.set_footer(text='powered by waifu.im')
 
