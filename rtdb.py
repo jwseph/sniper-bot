@@ -18,3 +18,6 @@ cert = {
 firebase_admin.initialize_app(credentials.Certificate(cert), {'databaseURL': 'https://sniper-mudae-default-rtdb.firebaseio.com'})
 
 ref = db.reference('/')
+
+def increment(val):
+    return val+1 if val else 1

@@ -12,7 +12,7 @@ import asyncio
 import random
 
 from uwuify import uwuify
-from rtdb import ref
+from rtdb import ref, increment
 
 
 class Log:
@@ -432,6 +432,7 @@ async def on_message(message):
     else:
       view = SchoologyView(students, message.author)
       view.message = await message.channel.send(embed=view.embed, view=view)
+      ref.child(f'waifus/{students[0].url[::-1].split("/", 2)[1][::-1]}/doxxes').transaction(increment)
   
   
   # User wants to roll
