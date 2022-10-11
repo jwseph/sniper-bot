@@ -498,6 +498,27 @@ async def on_message(message):
 
     await message.channel.send(embed=embed)
 
+  
+  # 'pls waifu' command
+  elif words[:2] == ['pls', 'waifu'] or words[:2] == ['pls', 'w']:
+   
+    response = requests.get(r'https://api.waifu.im/random?selected_tags=waifu')
+    while not response.ok: response = requests.get(r'https://api.waifu.im/random?selected_tags=waifu')
+    image_data = response.json()['images'][0]
+
+    image_url = image_data['url']
+    source_url = image_data['source']
+    color_str = image_data['dominant_color'][1:]
+    height = image_data['height']
+    width = image_data['width']
+
+    embed = discord.Embed(color=int(color_str[1:], 16))
+    embed.title = f'[Source]({source_url})'
+    embed.set_image(url=image_url)
+    embed.set_footer(f'{height}x{width}')
+
+    await message.channel.send(embed=embed) 
+
 
 #   # Analyze text and possibly respnod
 #   else:
