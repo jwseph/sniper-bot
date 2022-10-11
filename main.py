@@ -513,9 +513,9 @@ async def on_message(message):
     width = image_data['width']
 
     embed = discord.Embed(color=int(color_str[1:], 16))
-    embed.title = f'[Source]({source_url})'
+    embed.description = f'[Source]({source_url}) {width}x{height}'
     embed.set_image(url=image_url)
-    embed.set_footer(text=f'{height}x{width}')
+    embed.set_footer(text='powered by waifu.im')
 
     await message.channel.send(embed=embed) 
 
