@@ -478,7 +478,7 @@ async def on_message(message):
 
 
     # Kanye is in words
-    case [*words] if any(word in ['kanye', 'west'] for word in words):
+    case [*words] if 'kanye' in words or 'west' in words:
 
       response = requests.get(r'https://api.kanye.rest/')
       while not response.ok: response = requests.get(r'https://api.kanye.rest/')
