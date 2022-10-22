@@ -464,7 +464,7 @@ async def on_message(message):
 
 
     # User wants to be reminded
-    case ['pls', 'remind', duration]:
+    case ['pls', 'remind', *_]:
       try:
         time, text = message.content[message.content.index('remind')+7:].split(' ', 1)
         number = float(time[:-1])
