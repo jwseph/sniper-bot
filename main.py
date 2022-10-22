@@ -293,235 +293,228 @@ async def on_message(message):
 
   # Find first word in string: re.sub(r"^\W+", "", mystring)
   # Find first 10 words in message
-  words = [word.lower() for word in re.findall(r'\w+', message.content)][:10]
+  match re.findall(r'\w+', message.content.lower()):
 
 
-  # Disable and snipe are in words
-  if 'disable' in words and 'snipe' in words or 'disablesnipe' in words:
+    # "Snipe" function
+    case ['snipe', *_] | ['pls', 'snipe', *_]:
 
-    await message.channel.send("Please don't disable me! <:an:858788822427107348>")
+      # if message.author == bot.user: await message.delete()
+
+      # Message is available to snipe
+      if message.channel.id in history:
+
+        # Find deleted message
+        ctx = history[message.channel.id].pop(0)
+
+        # Clean channel history
+        if len(history[message.channel.id]) == 0: del history[message.channel.id]
+
+        # If message is invalid tell the user and terminate process
+        if not ctx.is_valid:
+          await message.channel.send('Message is unavailable (bot is being updated).')
+          return
+
+        try:
+
+          # Resend exact message if message is embed sent by this bot (kinda useless ngl)
+          if ctx.author == bot.user and len(ctx.embeds) != 0:
+            embed = ctx.embeds[0]
+            # Message has attachments
+            if len(ctx.attachments) != 0:
+              attachment = ctx.attachments[0]
+              # Save attachment
+              await attachment.save('tmp/'+attachment.filename)
+              # Send embed with attachment
+              await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
+              # Remove temporary file
+              os.remove('tmp/'+attachment.filename)
+            # Message has no attachments
+            else:
+              # Resend this bot's embed
+              await message.channel.send(embed=embed)
+            return  # Message has just been sniped
 
 
-  # "Snipe" is in the first 3 words
-  elif 'snipe' in words[:3]:
+          # Add data to embed
+          embed = discord.Embed(description=ctx.content, color=ctx.color) # 0xbb0a1e
+          try: embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
+          except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
+          embed.timestamp = ctx.created_at
 
-    # if message.author == bot.user: await message.delete()
-
-    # Message is available to snipe
-    if message.channel.id in history:
-
-      # Find deleted message
-      ctx = history[message.channel.id].pop(0)
-
-      # Clean channel history
-      if len(history[message.channel.id]) == 0: del history[message.channel.id]
-
-      # If message is invalid tell the user and terminate process
-      if not ctx.is_valid:
-        await message.channel.send('Message is unavailable (bot is being updated).')
-        return
-
-      try:
-
-        # Resend exact message if message is embed sent by this bot (kinda useless ngl)
-        if ctx.author == bot.user and len(ctx.embeds) != 0:
-          embed = ctx.embeds[0]
           # Message has attachments
           if len(ctx.attachments) != 0:
+
             attachment = ctx.attachments[0]
+
             # Save attachment
             await attachment.save('tmp/'+attachment.filename)
-            # Send embed with attachment
-            await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
+
+            # Put attachment inside of embed if it is image
+            if any(attachment.filename.endswith(ext) for ext in IMAGE_EXTENSIONS):
+              embed.set_image(url='attachment://'+attachment.filename)
+              await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
+              for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
+
+            # Send separately if attachment is not image
+            else:
+              await message.channel.send(embed=embed)
+              for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
+              await message.channel.send(file=discord.File('tmp/'+attachment.filename))
+
             # Remove temporary file
             os.remove('tmp/'+attachment.filename)
+
           # Message has no attachments
           else:
-            # Resend this bot's embed
+
+            # Send this bot's embed
             await message.channel.send(embed=embed)
-          return  # Message has just been sniped
 
+            # Send deleted message's embeds
+            for embed in ctx.embeds: await message.channel.send(embed=embed)
 
-        # Add data to embed
-        embed = discord.Embed(description=ctx.content, color=ctx.color) # 0xbb0a1e
-        try: embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
-        except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
-        embed.timestamp = ctx.created_at
+        except discord.errors.Forbidden as e:
 
-        # Message has attachments
-        if len(ctx.attachments) != 0:
+          # Put message back in cache if it was sniped while bot was muted or something
+          if message.channel.id in history:
 
-          attachment = ctx.attachments[0]
+            # Insert at position 0 if array exists
+            history[message.channel.id].insert(0, ctx)
 
-          # Save attachment
-          await attachment.save('tmp/'+attachment.filename)
-
-          # Put attachment inside of embed if it is image
-          if any(attachment.filename.endswith(ext) for ext in IMAGE_EXTENSIONS):
-            embed.set_image(url='attachment://'+attachment.filename)
-            await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
-            for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
-
-          # Send separately if attachment is not image
+          # Channel does not have a queue in history yet
           else:
-            await message.channel.send(embed=embed)
-            for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
-            await message.channel.send(file=discord.File('tmp/'+attachment.filename))
 
-          # Remove temporary file
-          os.remove('tmp/'+attachment.filename)
-
-        # Message has no attachments
-        else:
-
-          # Send this bot's embed
-          await message.channel.send(embed=embed)
-
-          # Send deleted message's embeds
-          for embed in ctx.embeds: await message.channel.send(embed=embed)
-
-      except discord.errors.Forbidden as e:
-
-        # Put message back in cache if it was sniped while bot was muted or something
-        if message.channel.id in history:
-
-          # Insert at position 0 if array exists
-          history[message.channel.id].insert(0, ctx)
-
-        # Channel does not have a queue in history yet
-        else:
-
-          # Create a new array for channel with message
-          history[message.channel.id] = [ctx]
+            # Create a new array for channel with message
+            history[message.channel.id] = [ctx]
 
 
 
-    # No message to snipe
-    else: await message.channel.send("There's nothing to snipe!")
+      # No message to snipe
+      else: await message.channel.send("There's nothing to snipe!")
 
 
-  # User wants to doxx
-  elif len(words) >= 3 and words[0] == 'pls' and (words[1] == 'dox' or words[1] == 'doxx'):
+    # User wants to doxx
+    case ['pls', 'dox' | 'doxx', _, *_]:
 
-    # if message.guild is not None and message.guild.id == 836698659071590452:
-    #   await message.channel.send('Please use `/search <person>` instead next time, thanks!')
+      # if message.guild is not None and message.guild.id == 836698659071590452:
+      #   await message.channel.send('Please use `/search <person>` instead next time, thanks!')
 
-    query = message.content.lower().split(' ')[2:]
-    students = [
-      student
-      for student, matches in sorted(
-        [
-          (student, matches)
-          for student in data
-          for matches in [sum(
-            sum(
-              (10000 if len(param) == len(name) else 1)*(5*(len(query)-param_i))
-              for name in student.name.lower().split(' ')
-              if param in name
-            )
-            for param_i, param in enumerate(query)
-          )]
-          if matches > 0
-        ],
-        key=(lambda x: x[1]),
-        reverse=True
-      )
-    ]
-    if len(students) == 0:
-      await message.channel.send("That person doesn't exist!")
-    else:
-      view = SchoologyView(students, message.author)
-      view.message = await message.channel.send(embed=view.embed, view=view)
-      ref.child(f'waifus/{students[0].url[::-1].split("/", 2)[1][::-1]}/doxxes').transaction(increment)
-  
-  
-  # User wants to roll
-  elif len(words) >= 2 and words[0] == 'pls' and words[1] in ['roll', 'r', 'kamiak', 'k', 'mariner', 'm']:
-
-    # Return if user is using command in dms
-    if isinstance(message.channel, discord.DMChannel):
-      await message.channel.send('This command can only be used from a server!')
-      return
+      query = message.content.lower().split(' ')[2:]
+      students = [
+        student
+        for student, matches in sorted(
+          [
+            (student, matches)
+            for student in data
+            for matches in [sum(
+              sum(
+                (10000 if len(param) == len(name) else 1)*(5*(len(query)-param_i))
+                for name in student.name.lower().split(' ')
+                if param in name
+              )
+              for param_i, param in enumerate(query)
+            )]
+            if matches > 0
+          ],
+          key=(lambda x: x[1]),
+          reverse=True
+        )
+      ]
+      if len(students) == 0:
+        await message.channel.send("That person doesn't exist!")
+      else:
+        view = SchoologyView(students, message.author)
+        view.message = await message.channel.send(embed=view.embed, view=view)
+        ref.child(f'waifus/{students[0].url[::-1].split("/", 2)[1][::-1]}/doxxes').transaction(increment)
     
-    # Roll student
-    if len(words) == 2:
-      if words[1] in ['roll', 'r']: student = random.choice(data)
-      elif words[1] in ['kamiak', 'k']: student = random.choice(data_school['Kamiak'])
-      elif words[1] in ['mariner', 'm']: student = random.choice(data_school['Mariner'])
-    else:
-      s = ' '.join(words[2:])
-      school = data_school.get(s.title(), data_school.get(s.upper(), None))
-      if school == None:
-        await message.channel.send('School couldn\'t be found. The full command is `pls roll <school>` without the High/Middle School at the end.')
+    
+    # User wants to roll
+    case ['pls', category, *school] if category in ['roll', 'r', 'kamiak', 'k', 'mariner', 'm']:
+
+      # Return if user is using command in dms
+      if isinstance(message.channel, discord.DMChannel):
+        await message.channel.send('This command can only be used from a server!')
         return
-      student = random.choice(data_school[school])
-    
-    # Send embed
-    view = MudaeView(student)
-    view.message = await message.channel.send(embed=view.embed, view=view)
+
+      # Roll student
+      match category:
+        case 'roll' | 'r':
+          school = school.join(' ')
+          if school == '':
+            choices = data
+          else:
+            choices = data_school.get(school.title(), data_school.get(school.upper(), None))
+            if choices == None:
+              await message.channel.send('School couldn\'t be found. The full command is `pls roll <school>` without the High/Middle School at the end.')
+              return
+        case 'kamiak' | 'k': choices = data_school['Kamiak']
+        case 'mariner' | 'm': choices = data_school['Mariner']
+
+      student = random.choice(choices)
+
+      # Send embed
+      view = MudaeView(student)
+      view.message = await message.channel.send(embed=view.embed, view=view)
+
+      
+    # User wants to uwu text
+    case ['pls', command, _, *_] if command in ['uwu', 'uwuify']:
+      await message.channel.send(uwuify(message.content[message.content.index(command)+len(command)+1:]))
+
+
+    # User wants to be reminded
+    case ['pls', 'remind', duration]:
+      try:
+        time, text = message.content[message.content.index('remind')+7:].split(' ', 1)
+        number = float(time[:-1])
+        seconds = number*{'s': 1, 'm': 60, 'h': 3600, 'd': 86400, 'w': 604800, 'y': 31557600}[time[-1].lower()]
+      except:
+        await message.channel.send("Sorry, I couldn't understand")
+        return
+      await message.channel.send(f"Reminding in {seconds} seconds...")
+      await asyncio.sleep(seconds)
+      await message.channel.send(f'<@{message.author.id}> {text}')
+
+
+    # Kanye is in words
+    case [*words] if any(word in ['kanye', 'west'] for word in words):
+
+      response = requests.get(r'https://api.kanye.rest/')
+      while not response.ok: response = requests.get(r'https://api.kanye.rest/')
+
+      quote = response.json()['quote']
+      if quote[-1].isalpha(): quote += '.'
+
+      embed = discord.Embed(description=quote, color=0x202225)
+      embed.set_footer(text='- Kanye West')
+
+      await message.channel.send(embed=embed)
 
     
-  # User wants to uwu text
-  elif message.content.startswith('pls uwu '):
-    await message.channel.send(uwuify(message.content[8:]))
+    # 'pls waifu' command
+    case ['pls', tag] if tag in ['w', 'uniform', 'maid', 'waifu', 'oppai']:
+      if tag == 'w': tag == 'waifu'
+      response = requests.get(r'https://api.waifu.im/random?selected_tags='+tag)
+      while not response.ok: response = requests.get(r'https://api.waifu.im/random?selected_tags=waifu')
+      image_data = response.json()['images'][0]
 
-  # User wants to uwuify text
-  elif message.content.startswith('pls uwuify '):
-    await message.channel.send(uwuify(message.content[11:]))
+      image_url = image_data['url']
+      source_url = image_data['source']
+      height = image_data['height']
+      width = image_data['width']
 
+      embed = discord.Embed(color=0x202225)
+      embed.title = f'Image Result'
+      embed.description = f'[Source]({source_url}) · {width}x{height}'
+      embed.set_image(url=image_url)
+      embed.set_footer(text='powered by waifu.im')
 
-  # User wants to be reminded
-  elif message.content.startswith('pls remind '):
-    try:
-      time, text = message.content[11:].split(' ', 1)
-      number = float(time[:-1])
-      seconds = number*{'s': 1, 'm': 60, 'h': 3600, 'd': 86400, 'w': 604800, 'y': 31557600}[time[-1].lower()]
-    except:
-      await message.channel.send("Sorry, I couldn't understand")
-      return
-    await message.channel.send(f"Reminding in {seconds} seconds...")
-    await asyncio.sleep(seconds)
-    await message.channel.send(f'<@{message.author.id}> {text}')
-
-
-  # Kanye is in words
-  elif 'kanye' in words or 'west' in words or ('wanye' in words and 'kest' in words):
-
-    response = requests.get(r'https://api.kanye.rest/')
-    while not response.ok: response = requests.get(r'https://api.kanye.rest/')
-
-    quote = response.json()['quote']
-    if quote[-1].isalpha(): quote += '.'
-
-    embed = discord.Embed(description=quote, color=0x202225)
-    embed.set_footer(text='- Kanye West')
-
-    await message.channel.send(embed=embed)
-
-  
-  # 'pls waifu' command
-  elif len(words) >= 2 and words[0] == 'pls' and words[1] in ['w', 'uniform', 'maid', 'waifu', 'oppai']:
-    if words[1] == 'w': words[1] == 'waifu'
-    response = requests.get(r'https://api.waifu.im/random?selected_tags='+words[1])
-    while not response.ok: response = requests.get(r'https://api.waifu.im/random?selected_tags=waifu')
-    image_data = response.json()['images'][0]
-
-    image_url = image_data['url']
-    source_url = image_data['source']
-    height = image_data['height']
-    width = image_data['width']
-
-    embed = discord.Embed(color=0x202225)
-    embed.title = f'Image Result'
-    embed.description = f'[Source]({source_url}) · {width}x{height}'
-    embed.set_image(url=image_url)
-    embed.set_footer(text='powered by waifu.im')
-
-    await message.channel.send(embed=embed) 
+      await message.channel.send(embed=embed) 
 
 
 #   # Analyze text and possibly respnod
-#   else:
+#   case _:
 #     try:
 #       tone_responses = {
 #         'impolite': {
