@@ -64,7 +64,6 @@ actions = [
   "\*sweats\*",
   "\*twewks\*",
   "\*wuns away\*",
-  "\*scweeches\*",
   "\*wawks away\*",
   "\*sees bulge\*",
   "\*wooks at you\*",
