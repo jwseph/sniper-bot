@@ -75,7 +75,7 @@ actions = [
 uwu_map = [
   [r"[rl]", r"w"],
   [r"[RL]", r"W"],
-  [r"([nN])([aeiouAEIOU])", r"\1y\2"]
+  [r"([nN])([aeiouAEIOU])", r"\1y\2"],
   [r"ove", r"uv"],
 ]
 
