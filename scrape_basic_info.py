@@ -55,7 +55,8 @@ class Student:
       soup = kwargs['soup']
       self.name = soup.select_one('div.item-title > a').text
       self.image = [soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg')]
-      self.school = [soup.select_one('div.item-info > span.item-school').text]
+      school = soup.select_one('div.item-info > span.item-school').text
+      self.school = [SCHOOL_MAP.get(school, school)]
       self.url = 'https://mukilteo.schoology.com'+soup.select_one('div.item-title > a')['href']+'/info'
       self.id = None
     elif obj is not None:
