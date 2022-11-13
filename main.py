@@ -6,11 +6,11 @@ import re
 from io import StringIO
 from contextlib import redirect_stdout
 import requests  # For kanye quotes
-from bs4 import BeautifulSoup
 import json
 import asyncio
 import random
 
+from schoology import Student
 from uwuify import uwuify
 from rtdb import ref, increment
 
@@ -35,50 +35,6 @@ class Log:
       self.created_at = message.created_at
 
     self.deleted_at = datetime.datetime.now()
-
-
-class Session:
-
-  __slots__ = '_session'
-
-  def __init__(self, session):
-    self._session = session
-
-  def get(self, session):
-    r = self._session.get(session)
-    if r.status_code == 429:
-      return self.get(session)
-    return r
-
-
-class Student:
-  __slots__ = 'name', 'image', 'school', 'url', 'id'
-  def __init__(self, obj=None, **kwargs):
-    if 'soup' in kwargs:
-      soup = kwargs['soup']
-      self.name = soup.select_one('div.item-title > a').text
-      self.image = [soup.select_one('a > div > div > img')['src'].replace('imagecache/profile_sm', 'imagecache/profile_reg')]
-      self.school = [soup.select_one('div.item-info > span.item-school').text]
-      self.url = 'https://mukilteo.schoology.com'+soup.select_one('div.item-title > a')['href']+'/info'
-      self.id = None
-    elif obj is not None:
-      self.name = obj['name']
-      self.image = obj['image']
-      self.school = obj['school']
-      self.url = obj['url']
-      self.id = obj['id']
-    else:
-      raise ValueError('Neither soup or obj was passed in Student constructor.')
-  def to_dict(self):
-    return {
-      'name': self.name,
-      'image': self.image,
-      'school': self.school,
-      'url': self.url,
-      'id': self.id
-    }
-def to_dict(student: Student):
-  return student.to_dict()
 
 
 class SchoologyView(discord.ui.View):

@@ -1,28 +1,28 @@
 import asyncio
-import json
+from getpass import getpass
 
 from schoology import Student, SchoologySession
 
-s = SchoologySession(input('gimme ur username'), input('gimme ur password'))
+s = SchoologySession(input('gimme ur username')+'@mukilteo.wednet.edu', getpass('gimme ur password'))
 
-data = [Student(student) for student in json.load(open('data.json', 'r'))] # Schoology data
+data = Student.import_students('data.json')
 
-
-x = [(student, i) for i, student in enumerate(data) if student.school in s.schools]
+x = [(sid, student) for sid, student in data.items() if student.school[-1] in s.schools and student.id == None]
 print(len(x))
 
-
 loop = asyncio.get_event_loop()
-futures = [(loop.run_in_executor(None, s.get_soup, student.url), i) for student, i in x]
-for future, i in futures:
+futures = [(sid, loop.run_in_executor(None, s.get_soup, student.url)) for sid, student in x]
+for sid, future in futures:
   soup = await future
   if soup is None:
-    print('NONENONE')
+    print('No soup for', data[sid].name)
     continue
   email_box = soup.select_one('.admin-val.email a')
   if email_box is None: continue
   email = email_box['href']
   if not email.endswith('@mukilteo.wednet.edu'): continue
-  print(email[7:-20])
-  data[i].id = email[7:-20]
+  print(f'[{email[7:-20]}] {data[sid].name}')
+  data[sid].id = email[7:-20]
 
+
+Student.export_students(data, 'data3.json')

@@ -77,6 +77,16 @@ class Student:
       'url': self.url,
       'id': self.id
     }
+  
+  @staticmethod
+  def import_students(filename: str) -> dict[str, 'Student']:
+    with open(filename, 'r') as f:
+      return {sid: Student(student) for sid, student in json.load(f).items()}
+  
+  @staticmethod
+  def export_students(students: dict[str, 'Student'], filename: str):
+    with open(filename, 'w') as f:
+      json.dump(students, f, indent=4, default=Student.to_dict)
 
 
 class SchoologySession(requests.Session):
@@ -93,12 +103,13 @@ class SchoologySession(requests.Session):
     receive_soup = BeautifulSoup(receive_resp.content, features='lxml')
     user_data = json.loads(receive_soup.select_one('#body > script').text.removeprefix('window.siteNavigationUiProps='))['props']['user']
     self.uid = str(user_data['uid'])
-    self.schools = [SCHOOL_MAP.get(building['name'], building['name']) for building in user_data['buildings']]
+    self.schools = {SCHOOL_MAP.get(building['name'], building['name']) for building in user_data['buildings']}
 
   def get_soup(self, url: str):
     r = self.get(url)
-    while not r.ok:  # r.status_code == 429
+    while r.status_code == 429:
       r = self.get(url)
-    print(r.status_code)
+      # print(429)
+    # print(r.status_code)
     return BeautifulSoup(r.content, features='lxml') if r.ok else None
 
