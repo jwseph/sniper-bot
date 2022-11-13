@@ -181,7 +181,7 @@ class TemporaryFile(discord.File):
   
   @staticmethod
   async def save(attachment: discord.Attachment):
-    await self.attachment.save(self.path)
+    await attachment.save('tmp/'+attachment.filename)
     return TemporaryFile(attachment)
 
   def __del__(self):
