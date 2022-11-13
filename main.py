@@ -141,7 +141,7 @@ class MudaeView(discord.ui.View):
     await interaction.response.edit_message(embed=self.embed, view=self)
 
 
-def execute_and_capture(code):
+async def execute_and_capture(code):
   """Execute and capture stdout. Returns stdout or the exception."""
   try:
     out = StringIO()
@@ -198,7 +198,8 @@ async def on_message(message):
   # Execute message if it is send by admin and is enclosed with "```"s
   if message.author.id in admins and message.content.startswith('```') and message.content.endswith('```'):
     code = message.content[3:-3]
-    await message.channel.send(execute_and_capture(code))
+    result = await execute_and_capture(code)
+    await message.channel.send(result)
     return
 
   # Find first word in string: re.sub(r"^\W+", "", mystring)
