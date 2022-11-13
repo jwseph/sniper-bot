@@ -173,11 +173,14 @@ class TemporaryFile(discord.File):
 
   IMAGE_EXTENSIONS = '.png', '.jpg', '.jpeg', '.gif'
 
-  async def __init__(self, attachment: discord.Attachment):
+  def __init__(self, attachment: discord.Attachment):
+    self.attachment = attachment
     self.name = attachment.filename
     self.path = f'tmp/{self.name}'
     super().__init__(self.path)
-    await attachment.save(self.path)
+  
+  async def save(self):
+    await self.attachment.save(self.path)
 
   def __del__(self):
     os.remove(self.path)
@@ -216,7 +219,8 @@ async def snipe(channel: discord.channel):
       await send_deleted_embeds(channel, ctx)
       return
     
-    file = await TemporaryFile(ctx.attachments[0])
+    file = TemporaryFile(ctx.attachments[0])
+    await file.save()
     
     # Send file with embed if file is an image
     if file.is_image():
