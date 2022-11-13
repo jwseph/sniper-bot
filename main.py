@@ -10,7 +10,7 @@ import json
 import asyncio
 import random
 
-from schoology import Student
+from schoology import Student, SCHOOL_URLS
 from uwuify import uwuify
 from rtdb import ref, increment
 
@@ -39,38 +39,6 @@ class Log:
 
 class SchoologyView(discord.ui.View):
 
-  SCHOOL_URLS = {
-    'Mukilteo School District': 'https://www.mukilteoschools.org/',
-    'ACES': 'https://www.mukilteoschools.org/ac',
-    'Challenger': 'https://www.mukilteoschools.org/ch',
-    'Columbia': 'https://www.mukilteoschools.org/co',
-    'CBTC': 'https://www.mukilteoschools.org/Page/336',
-    'Discovery': 'https://www.mukilteoschools.org/di',
-    'ECEAP': 'https://www.mukilteoschools.org/page/12058',
-    'Endeavour': 'https://www.mukilteoschools.org/en',
-    'Explorer': 'https://www.mukilteoschools.org/ex',
-    'Fairmount': 'https://www.mukilteoschools.org/fa',
-    'Harbour Pointe': 'https://www.mukilteoschools.org/hp',
-    'Horizon': 'https://www.mukilteoschools.org/hz',
-    'Kamiak': 'https://www.mukilteoschools.org/ka',
-    'Lake Stickney': 'https://www.mukilteoschools.org/ls',
-    'Mariner': 'https://www.mukilteoschools.org/ma',
-    'Mukilteo Elementary': 'https://www.mukilteoschools.org/me',
-    'Special Education': 'https://www.mukilteoschools.org/page/1194',
-    'Virtual Academy': 'https://www.mukilteoschools.org/mva',
-    'Odyssey': 'https://www.mukilteoschools.org/oe',
-    'Olivia Park': 'https://www.mukilteoschools.org/op',
-    'Olympic View': 'https://www.mukilteoschools.org/ov',
-    'Pathfinder': 'https://www.mukilteoschools.org/pkc',
-    'Picnic Point': 'https://www.mukilteoschools.org/pi',
-    'Serene Lake': 'https://www.mukilteoschools.org/sl',
-    'Sno-Isle Skills Center': 'https://snoisletech.com/',
-    'Summer School - Elementary': 'https://www.mukilteoschools.org/Page/12059',
-    'Summer School - Middle/High': 'https://www.mukilteoschools.org/Page/12059',
-    'Summer School - Skills Center': 'https://www.mukilteoschools.org/Page/12059',
-    'Voyager': 'https://www.mukilteoschools.org/vo',
-  }
-
   def __init__(self, students, author):
     super().__init__()
     self.i = 0
@@ -93,19 +61,26 @@ class SchoologyView(discord.ui.View):
     self.update_embed()
 
   async def on_timeout(self):
-    self.frst_button.disabled = \
-    self.prev_button.disabled = \
-    self.next_button.disabled = \
-    self.last_button.disabled = True
+    self.frst_button.disabled = self.prev_button.disabled = True
+    self.next_button.disabled = self.last_button.disabled = True
     try: await self.message.edit(view=self)
     except discord.errors.NotFound: print("SchoologyView message was already deleted")
 
   def update_embed(self):
     student = self.students[self.i]
     self.embed.title = f'{student.name}'
-    self.embed.description = \
-      (f'{"Student" if student.id.isdigit() else "Teacher"} ID: [{student.id}](https://mailto.kamiak.org/{student.id})' if student.id is not None else '')+'\n'\
-      f'School: [{student.school[-1]}]({SchoologyView.SCHOOL_URLS.get(student.school[-1], "https://www.mukilteoschools.org/")})'
+    student_info = []
+
+    if student.id is not None:
+      id_type = 'Student' if student.id.isdigit() else 'Teacher'
+      mailto_url = f'https://mailto.kamiak.org/{student.id}'
+      student_info.append(f'{id_type} ID: [{student.id}]({mailto_url})')
+
+    school_name = student.school[-1]
+    school_url = SCHOOL_URLS.get(school_name, "https://www.mukilteoschools.org/")
+    student_info.append(f'School: [{school_name}]({school_url})')
+
+    self.embed.description = '\n'.join(student_info)
     self.embed.set_image(url=student.image[-1])
     self.embed.set_footer(text=f'{self.i+1} / {len(self.students)}')
 
@@ -114,40 +89,26 @@ class SchoologyView(discord.ui.View):
     await interaction.response.edit_message(embed=self.embed, view=self)
 
   def disable_buttons(self):
-    self.frst_button.disabled = \
-    self.prev_button.disabled = \
-    self.next_button.disabled = \
-    self.last_button.disabled = False
-    if self.i == 0:
-      self.frst_button.disabled = \
-      self.prev_button.disabled = True
-    if self.i == len(self.students)-1:
-      self.next_button.disabled = \
-      self.last_button.disabled = True
+    self.frst_button.disabled = self.prev_button.disabled = 0 <= self.i-1
+    self.next_button.disabled = self.last_button.disabled = self.i+1 < len(self.students)
+  
+  async def change_index(self, interaction, i):
+    # if interaction.user != self.author: return
+    self.i = i
+    self.disable_buttons()
+    await self.update(interaction)
 
   async def prev_callback(self, interaction):
-    # if interaction.user != self.author: return
-    self.i -= 1
-    self.disable_buttons()
-    await self.update(interaction)
+    await self.change_index(interaction, self.i-1)
 
   async def next_callback(self, interaction):
-    # if interaction.user != self.author: return
-    self.i += 1
-    self.disable_buttons()
-    await self.update(interaction)
+    await self.change_index(interaction, self.i+1)
 
   async def frst_callback(self, interaction):
-    # if interaction.user != self.author: return
-    self.i = 0
-    self.disable_buttons()
-    await self.update(interaction)
-
+    await self.change_index(interaction, 0)
+  
   async def last_callback(self, interaction):
-    # if interaction.user != self.author: return
-    self.i = len(self.students)-1
-    self.disable_buttons()
-    await self.update(interaction)
+    await self.change_index(interaction, len(self.students)-1)
 
 
 class MudaeView(discord.ui.View):
@@ -180,6 +141,17 @@ class MudaeView(discord.ui.View):
     await interaction.response.edit_message(embed=self.embed, view=self)
 
 
+def execute_and_capture(code):
+  """Execute and capture stdout. Returns stdout or the exception."""
+  try:
+    out = StringIO()
+    exec('async def __FUNCTION(message):\n  '+code.replace('\n', '\n  '), globals())
+    with redirect_stdout(out): await __FUNCTION(message)  # type: ignore
+    return out.getvalue()
+  except Exception as e:
+    return e
+
+
 
 TOKEN = os.environ['TOKEN']
 CLEAR_LIMIT = datetime.timedelta(minutes=30)
@@ -193,7 +165,7 @@ intents.messages = True
 intents.message_content = True
 bot = discord.Client(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
 history = {}
-admins = [557233155866886184]
+admins = [557233155866886184, 650900479663931413]
 data = [Student(student) for student in json.load(open('data.json', 'r')).values()] # Schoology data
 data_school = {}  # Students per school
 for student in data:
@@ -225,26 +197,8 @@ async def on_message(message):
 
   # Execute message if it is send by admin and is enclosed with "```"s
   if message.author.id in admins and message.content.startswith('```') and message.content.endswith('```'):
-
     code = message.content[3:-3]
-
-    try:
-
-      # Execute whilst capturing stdout
-      out = StringIO()
-      exec('async def __FUNCTION(message):\n  '+code.replace('\n', '\n  '), globals())
-      with redirect_stdout(out): await __FUNCTION(message)  # type: ignore
-      str_out = out.getvalue()
-
-      # Send stdout if there is anything to send
-      if str_out != '' and not str_out.isspace():
-        await message.channel.send(str_out)
-
-    except Exception as e:
-
-      # Send error message
-      await message.channel.send(e)
-
+    await message.channel.send(execute_and_capture(code))
     return
 
   # Find first word in string: re.sub(r"^\W+", "", mystring)
@@ -545,11 +499,13 @@ async def on_raw_message_action(payload):
 
 
 @bot.event
-async def on_raw_message_delete(payload): await on_raw_message_action(payload)
+async def on_raw_message_delete(payload):
+  await on_raw_message_action(payload)
 
 
 @bot.event
-async def on_raw_message_edit(payload): await on_raw_message_action(payload)
+async def on_raw_message_edit(payload):
+  await on_raw_message_action(payload)
 
 
 def mem_clear():
