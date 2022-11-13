@@ -157,8 +157,10 @@ async def get_snipe_embed(ctx: Log) -> discord.Embed:
   """Returns embed for the snipe"""
 
   # Return same embed if message is an embed **sent by this bot**
-  if ctx.author == bot.user and len(ctx.embeds) != 0:
-    return ctx.embeds[0]
+  if ctx.author == bot.user and len(ctx.embeds) > 0:
+    embed = ctx.embeds[0]
+    ctx.embeds = ctx.embeds[1:]
+    return embed
 
   # Create embed and return
   embed = discord.Embed(description=ctx.content, color=ctx.color) # 0xbb0a1e
