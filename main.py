@@ -219,7 +219,8 @@ async def snipe(channel: discord.channel):
 
     # Send normally if it does not have any attachments
     if len(ctx.attachments) == 0:
-      await channel.send(embed=[embed]+ctx.embeds)
+      await channel.send(embed=embed)
+      await send_deleted_embeds(channel, ctx)
       return
     
     file = await TemporaryFile.save(ctx.attachments[0])
