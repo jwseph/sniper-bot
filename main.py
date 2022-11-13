@@ -180,7 +180,7 @@ class TemporaryFile(discord.File):
     super().__init__(self.path)
   
   @staticmethod
-  async def save(self, attachment: discord.Attachment):
+  async def save(attachment: discord.Attachment):
     await self.attachment.save(self.path)
     return TemporaryFile(attachment)
 
