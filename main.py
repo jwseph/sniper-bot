@@ -153,19 +153,21 @@ async def execute_and_capture(message: discord.Message) -> str:
     return e
 
 
-async def get_snipe_embed(ctx: Log) -> discord.Embed:
-  """Returns embed for the snipe"""
+class SnipeEmbed(discord.Embed):
 
-  # Return same embed if message is an embed **sent by this bot**
-  if ctx.author == bot.user and len(ctx.embeds) != 0:
-    return ctx.embeds[0]
+  def __init__(self, ctx: Log):
 
-  # Create embed and return
-  embed = discord.Embed(description=ctx.content, color=ctx.color) # 0xbb0a1e
-  try: embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
-  except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
-  embed.timestamp = ctx.created_at
-  return embed
+    # Copy embed if message is an embed **sent by this bot**
+    if ctx.author == bot.user and len(ctx.embeds) != 0:
+      super().__init__()
+      self.__dict__.update(ctx.embeds[0].__dict__)
+      return
+
+    # Create embed
+    super().__init__(description=ctx.content, color=ctx.color)  # 0xbb0a1e
+    try: self.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
+    except: self.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
+    self.timestamp = ctx.created_at
 
 
 class TemporaryFile(discord.File):
@@ -213,7 +215,7 @@ async def snipe(channel: discord.channel):
 
   try:
 
-    embed = await get_snipe_embed(ctx)
+    embed = SnipeEmbed(ctx)
 
     # Send normally if it does not have any attachments
     if len(ctx.attachments) == 0:
