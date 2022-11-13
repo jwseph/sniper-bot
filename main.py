@@ -141,7 +141,7 @@ class MudaeView(discord.ui.View):
     await interaction.response.edit_message(embed=self.embed, view=self)
 
 
-async def execute_and_capture(message: discord.message):
+async def execute_and_capture(message: discord.Message) -> str:
   """Execute and capture stdout. Returns stdout or the exception."""
   code = message.content[3:-3]
   try:
@@ -153,12 +153,96 @@ async def execute_and_capture(message: discord.message):
     return e
 
 
+async def get_snipe_embed(ctx: Log) -> discord.Embed:
+  """Returns embed for the snipe"""
+
+  # Return same embed if message is an embed **sent by this bot**
+  if ctx.author == bot.user and len(ctx.embeds) != 0:
+    return ctx.embeds[0]
+
+  # Create embed and return
+  embed = discord.Embed(description=ctx.content, color=ctx.color) # 0xbb0a1e
+  try: embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
+  except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
+  embed.timestamp = ctx.created_at
+  return embed
+
+
+class TemporaryFile(discord.File):
+  """Temporary attachment file that deletes its referenced file on destruction"""
+
+  IMAGE_EXTENSIONS = '.png', '.jpg', '.jpeg', '.gif'
+
+  async def __init__(self, attachment: discord.Attachment):
+    self.name = attachment.filename
+    self.path = f'tmp/{self.name}'
+    super().__init__(self.path)
+    await attachment.save(self.path)
+
+  def __del__(self):
+    os.remove(self.path)
+  
+  def is_image(self):
+    return any(self.name.endswith(ext) for ext in TemporaryFile.IMAGE_EXTENSIONS)
+ 
+
+async def send_deleted_embeds(channel: discord.TextChannel, ctx: Log):
+  for embed in ctx.embeds: await channel.send(embed=embed)
+
+
+async def snipe(channel: discord.channel):
+  """Snipes a deleted discord message"""
+
+  if channel.id not in history:
+    await channel.send("There's nothing to snipe!")
+    return
+
+  # Find deleted message
+  ctx = history[channel.id].pop(0)
+  if len(history[channel.id]) == 0: del history[channel.id]  # Clean channel history
+
+  # If message is invalid tell the user and terminate process
+  if not ctx.is_valid:
+    await channel.send('Message is unavailable (bot is being updated).')
+    return
+
+  try:
+
+    embed = await get_snipe_embed(ctx)
+
+    # Send normally if it does not have any attachments
+    if len(ctx.attachments) == 0:
+      await channel.send(embed=embed)
+      await send_deleted_embeds(channel, ctx)
+      return
+    
+    file = await TemporaryFile(ctx.attachments[0])
+    
+    # Send file with embed if file is an image
+    if file.is_image():
+      embed.set_image(url='attachment://'+file.name)
+      await channel.send(embed=embed, file=file)
+      await send_deleted_embeds(channel, ctx)
+      return
+    
+    # Send file and embed separately
+    await channel.send(embed=embed)
+    await send_deleted_embeds(channel, ctx)
+    await channel.send(file=file)
+
+
+  except discord.errors.Forbidden:
+
+    # Put message back in cache if it was sniped while bot was muted or something
+    if channel.id not in history: history[channel.id] = []
+    history[channel.id].insert(0, ctx)  # Front-based stack
+
+
 
 TOKEN = os.environ['TOKEN']
 CLEAR_LIMIT = datetime.timedelta(minutes=30)
 CLEAR_DELAY = datetime.timedelta(minutes=5)
 SNIPE_DELAY = datetime.timedelta(seconds=60)
-IMAGE_EXTENSIONS = '.png', '.jpg', '.jpeg', '.gif'
 
 intents = discord.Intents.default()
 intents.members = True
@@ -211,98 +295,8 @@ async def on_message(message):
     case ['snipe', *_] | ['pls', 'snipe', *_]:
 
       # if message.author == bot.user: await message.delete()
-
-      # Message is available to snipe
-      if message.channel.id in history:
-
-        # Find deleted message
-        ctx = history[message.channel.id].pop(0)
-
-        # Clean channel history
-        if len(history[message.channel.id]) == 0: del history[message.channel.id]
-
-        # If message is invalid tell the user and terminate process
-        if not ctx.is_valid:
-          await message.channel.send('Message is unavailable (bot is being updated).')
-          return
-
-        try:
-
-          # Resend exact message if message is embed sent by this bot (kinda useless ngl)
-          if ctx.author == bot.user and len(ctx.embeds) != 0:
-            embed = ctx.embeds[0]
-            # Message has attachments
-            if len(ctx.attachments) != 0:
-              attachment = ctx.attachments[0]
-              # Save attachment
-              await attachment.save('tmp/'+attachment.filename)
-              # Send embed with attachment
-              await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
-              # Remove temporary file
-              os.remove('tmp/'+attachment.filename)
-            # Message has no attachments
-            else:
-              # Resend this bot's embed
-              await message.channel.send(embed=embed)
-            return  # Message has just been sniped
-
-
-          # Add data to embed
-          embed = discord.Embed(description=ctx.content, color=ctx.color) # 0xbb0a1e
-          try: embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
-          except: embed.set_author(name='Unknown User', icon_url=r'https://cdn.discordapp.com/embed/avatars/0.png')
-          embed.timestamp = ctx.created_at
-
-          # Message has attachments
-          if len(ctx.attachments) != 0:
-
-            attachment = ctx.attachments[0]
-
-            # Save attachment
-            await attachment.save('tmp/'+attachment.filename)
-
-            # Put attachment inside of embed if it is image
-            if any(attachment.filename.endswith(ext) for ext in IMAGE_EXTENSIONS):
-              embed.set_image(url='attachment://'+attachment.filename)
-              await message.channel.send(embed=embed, file=discord.File('tmp/'+attachment.filename))
-              for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
-
-            # Send separately if attachment is not image
-            else:
-              await message.channel.send(embed=embed)
-              for embed in ctx.embeds: await message.channel.send(embed=embed)  # Deleted message's embeds
-              await message.channel.send(file=discord.File('tmp/'+attachment.filename))
-
-            # Remove temporary file
-            os.remove('tmp/'+attachment.filename)
-
-          # Message has no attachments
-          else:
-
-            # Send this bot's embed
-            await message.channel.send(embed=embed)
-
-            # Send deleted message's embeds
-            for embed in ctx.embeds: await message.channel.send(embed=embed)
-
-        except discord.errors.Forbidden as e:
-
-          # Put message back in cache if it was sniped while bot was muted or something
-          if message.channel.id in history:
-
-            # Insert at position 0 if array exists
-            history[message.channel.id].insert(0, ctx)
-
-          # Channel does not have a queue in history yet
-          else:
-
-            # Create a new array for channel with message
-            history[message.channel.id] = [ctx]
-
-
-
-      # No message to snipe
-      else: await message.channel.send("There's nothing to snipe!")
+      
+      await snipe(message.channel)
 
 
     # User wants to doxx
@@ -314,7 +308,7 @@ async def on_message(message):
       query = message.content.lower().split(' ')[2:]
       students = [
         student
-        for student, matches in sorted(
+        for student, _ in sorted(
           [
             (student, matches)
             for student in data
