@@ -159,8 +159,7 @@ class SnipeEmbed(discord.Embed):
 
     # Copy embed if message is an embed **sent by this bot**
     if ctx.author == bot.user and len(ctx.embeds) != 0:
-      super().__init__()
-      self.__dict__.update(ctx.embeds[0].__dict__)
+      super().__init__(**ctx.embeds[0].to_dict())
       return
 
     # Create embed
