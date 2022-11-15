@@ -89,8 +89,8 @@ class SchoologyView(discord.ui.View):
     await interaction.response.edit_message(embed=self.embed, view=self)
 
   def disable_buttons(self):
-    self.frst_button.disabled = self.prev_button.disabled = 0 <= self.i-1
-    self.next_button.disabled = self.last_button.disabled = self.i+1 < len(self.students)
+    self.frst_button.disabled = self.prev_button.disabled = not 0 <= self.i-1
+    self.next_button.disabled = self.last_button.disabled = not self.i+1 < len(self.students)
   
   async def change_index(self, interaction, i):
     # if interaction.user != self.author: return
