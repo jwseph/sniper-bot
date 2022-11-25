@@ -246,6 +246,37 @@ async def snipe(channel: discord.channel):
     history[channel.id].insert(0, ctx)  # Front-based stack
 
 
+async def dox(message: discord.Message):
+  """Find's someone's school picture, school, and student id from a message"""
+  query = message.content.lower().split(' ')[2:]
+  students = [
+    student
+    for student, _ in sorted(
+      [
+        (student, matches)
+        for student in data
+        for matches in [sum(
+          sum(
+            (1000000 if param == student.id else 1)*(1000 if len(param) == len(name) else 1)*(5*(len(query)-param_i))
+            for name in student.name.lower().split(' ')
+            if param in name or param == student.id
+          )
+          for param_i, param in enumerate(query)
+        )]
+        if matches > 0
+      ],
+      key=(lambda x: x[1]),
+      reverse=True
+    )
+  ]
+  if len(students) == 0:
+    await message.channel.send("That person doesn't exist!")
+  else:
+    view = SchoologyView(students, message.author)
+    view.message = await message.channel.send(embed=view.embed, view=view)
+    ref.child(f'waifus/{students[0].url[::-1].split("/", 2)[1][::-1]}/doxxes').transaction(increment)
+
+
 
 class SniperClient(discord.Client):
   def __init__(self):
@@ -292,6 +323,10 @@ async def test_command(interaction: discord.Interaction):
 async def snipe_command(interaction: discord.Interaction):
   await snipe(interaction.message.channel)
 
+@tree.command(name='dox', description="Find someone's school picture, school, and student id")
+async def snipe_command(interaction: discord.Interaction):
+  await dox(interaction.message)
+
 
 @bot.event
 async def on_message(message):
@@ -323,33 +358,7 @@ async def on_message(message):
       # if message.guild is not None and message.guild.id == 836698659071590452:
       #   await message.channel.send('Please use `/search <person>` instead next time, thanks!')
 
-      query = message.content.lower().split(' ')[2:]
-      students = [
-        student
-        for student, _ in sorted(
-          [
-            (student, matches)
-            for student in data
-            for matches in [sum(
-              sum(
-                (1000000 if param == student.id else 1)*(1000 if len(param) == len(name) else 1)*(5*(len(query)-param_i))
-                for name in student.name.lower().split(' ')
-                if param in name or param == student.id
-              )
-              for param_i, param in enumerate(query)
-            )]
-            if matches > 0
-          ],
-          key=(lambda x: x[1]),
-          reverse=True
-        )
-      ]
-      if len(students) == 0:
-        await message.channel.send("That person doesn't exist!")
-      else:
-        view = SchoologyView(students, message.author)
-        view.message = await message.channel.send(embed=view.embed, view=view)
-        ref.child(f'waifus/{students[0].url[::-1].split("/", 2)[1][::-1]}/doxxes').transaction(increment)
+      await dox(message)
     
     
     # User wants to roll
