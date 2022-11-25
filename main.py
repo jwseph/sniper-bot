@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord import app_commands
 import datetime
 import threading
 import os
@@ -247,17 +247,33 @@ async def snipe(channel: discord.channel):
 
 
 
+class SniperClient(discord.Client):
+  def __init__(self):
+    intents = discord.Intents.default()
+    intents.members = True
+    intents.messages = True
+    intents.message_content = True
+    super().__init__(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
+    self.synced = False
+  
+  async def on_ready(self):
+    await self.wait_until_ready()
+    if not self.synced:
+      await tree.sync()
+      self.synced = True
+    print(f'[sniper] :: Logged in as {bot.user}')
+
+
+
 TOKEN = os.environ['TOKEN']
 CLEAR_LIMIT = datetime.timedelta(minutes=30)
 CLEAR_DELAY = datetime.timedelta(minutes=5)
 SNIPE_DELAY = datetime.timedelta(seconds=60)
 
-intents = discord.Intents.default()
-intents.members = True
-intents.messages = True
-intents.message_content = True
 # bot = discord.Client(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
-bot = commands.Bot('.', intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
+bot = SniperClient()
+tree = app_commands.CommandTree(bot)
+
 history = {}
 admins = [557233155866886184, 650900479663931413]
 data = [Student(student) for student in json.load(open('data.json', 'r')).values()] # Schoology data
@@ -268,28 +284,13 @@ for student in data:
 if not os.path.exists('tmp'): os.mkdir('tmp')
 
 
-@bot.event
-async def on_ready():
-
-  # Bot is starting up
-  print('[sniper] :: Logged in as', bot.user)
-
-  # # Set bot status to 'Listening to "snipe"'
-  # await bot.change_presence()
-
-  # # Cache old messages
-  # for guild in bot.guilds:
-  #     for channel in guild.text_channels:
-  #         await channel.history().flatten()
+@tree.command(name='test', description='testing')
+async def snipe(interaction: discord.Interaction):
+  await interaction.response.send_message('Test')
 
 
 @bot.event
 async def on_message(message):
-  # Slash commands
-  if message.content.startswith('/'):
-    await bot.process_commands(message)
-    return
-
   # Stop execution if sender is this bot
   # if message.author == bot.user: return
 
@@ -514,16 +515,6 @@ async def on_raw_message_delete(payload):
 @bot.event
 async def on_raw_message_edit(payload):
   await on_raw_message_action(payload)
-
-
-@bot.command()
-async def ping(ctx):
-  await ctx.respond('Pong')
-
-
-@bot.command()
-async def snipe(ctx):
-  await snipe(ctx.channel)
 
 
 def mem_clear():
