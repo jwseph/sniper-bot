@@ -286,7 +286,7 @@ async def on_ready():
 @bot.event
 async def on_message(message):
   # Slash commands
-  if message.startswith('/'):
+  if message.content.startswith('/'):
     await bot.process_commands(message)
     return
 
