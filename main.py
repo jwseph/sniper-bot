@@ -194,9 +194,8 @@ class TemporaryFile(discord.File):
     return any(self.name.endswith(ext) for ext in TemporaryFile.IMAGE_EXTENSIONS)
  
 
-async def send_deleted_embeds(channel: discord.TextChannel, ctx: Log, send=None):
-  if send is None: send = channel.send
-  for embed in ctx.embeds: await send(embed=embed)
+async def send_deleted_embeds(channel: discord.TextChannel, ctx: Log):
+  for embed in ctx.embeds: await channel.send(embed=embed)
 
 
 async def snipe(channel: discord.channel, send=None):
@@ -224,7 +223,7 @@ async def snipe(channel: discord.channel, send=None):
     # Send normally if it does not have any attachments
     if len(ctx.attachments) == 0:
       await send(embed=embed)
-      await send_deleted_embeds(channel, ctx, send)
+      await send_deleted_embeds(channel, ctx)
       return
     
     file = await TemporaryFile.save(ctx.attachments[0])
@@ -233,12 +232,12 @@ async def snipe(channel: discord.channel, send=None):
     if file.is_image():
       embed.set_image(url='attachment://'+file.name)
       await send(embed=embed, file=file)
-      await send_deleted_embeds(channel, ctx, send)
+      await send_deleted_embeds(channel, ctx)
       return
     
     # Send file and embed separately
     await send(embed=embed)
-    await send_deleted_embeds(channel, ctx, send)
+    await send_deleted_embeds(channel, ctx)
     await send(file=file)
 
 
