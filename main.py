@@ -257,7 +257,7 @@ intents.members = True
 intents.messages = True
 intents.message_content = True
 # bot = discord.Client(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
-bot = commands.Bot('sniper ', intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
+bot = commands.Bot('.', intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
 history = {}
 admins = [557233155866886184, 650900479663931413]
 data = [Student(student) for student in json.load(open('data.json', 'r')).values()] # Schoology data
@@ -285,7 +285,10 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-  await bot.process_commands(message)  # For slash commands
+  # Slash commands
+  if message.startswith('/'):
+    await bot.process_commands(message)
+    return
 
   # Stop execution if sender is this bot
   # if message.author == bot.user: return
@@ -516,6 +519,11 @@ async def on_raw_message_edit(payload):
 @bot.command()
 async def ping(ctx):
   await ctx.respond('Pong')
+
+
+@bot.command()
+async def snipe(ctx):
+  await snipe(ctx.channel)
 
 
 def mem_clear():
