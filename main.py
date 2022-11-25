@@ -513,7 +513,7 @@ async def on_raw_message_edit(payload):
   await on_raw_message_action(payload)
 
 
-@bot.slash_command()
+@bot.command()
 async def ping(ctx):
   await ctx.respond('Pong')
 
