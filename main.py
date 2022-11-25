@@ -194,12 +194,12 @@ class TemporaryFile(discord.File):
     return any(self.name.endswith(ext) for ext in TemporaryFile.IMAGE_EXTENSIONS)
  
 
-async def send_deleted_embeds(channel: discord.TextChannel, ctx: Log, send: function=None):
+async def send_deleted_embeds(channel: discord.TextChannel, ctx: Log, send=None):
   if send is None: send = channel.send
   for embed in ctx.embeds: await send(embed=embed)
 
 
-async def snipe(channel: discord.channel, send: function=None):
+async def snipe(channel: discord.channel, send=None):
   """Snipes a deleted discord message"""
   
   if send is None: send = channel.send
