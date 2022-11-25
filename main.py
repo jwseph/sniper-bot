@@ -1,4 +1,5 @@
 import discord
+from discord.ext import commands
 import datetime
 import threading
 import os
@@ -255,7 +256,8 @@ intents = discord.Intents.default()
 intents.members = True
 intents.messages = True
 intents.message_content = True
-bot = discord.Client(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
+# bot = discord.Client(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
+bot = commands.Bot('sniper ', intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
 history = {}
 admins = [557233155866886184, 650900479663931413]
 data = [Student(student) for student in json.load(open('data.json', 'r')).values()] # Schoology data
@@ -283,6 +285,7 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+  await bot.process_commands(message)  # For slash commands
 
   # Stop execution if sender is this bot
   # if message.author == bot.user: return
@@ -508,6 +511,13 @@ async def on_raw_message_delete(payload):
 @bot.event
 async def on_raw_message_edit(payload):
   await on_raw_message_action(payload)
+
+
+
+@bot.slash_command()
+async def ping(ctx):
+  await ctx.respond('Pong')
+
 
 
 def mem_clear():
