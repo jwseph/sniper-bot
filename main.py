@@ -194,15 +194,18 @@ class TemporaryFile(discord.File):
     return any(self.name.endswith(ext) for ext in TemporaryFile.IMAGE_EXTENSIONS)
  
 
-async def send_deleted_embeds(channel: discord.TextChannel, ctx: Log):
-  for embed in ctx.embeds: await channel.send(embed=embed)
+async def send_deleted_embeds(channel: discord.TextChannel, ctx: Log, send: function=None):
+  if send is None: send = channel.send
+  for embed in ctx.embeds: await send(embed=embed)
 
 
-async def snipe(channel: discord.channel):
+async def snipe(channel: discord.channel, send: function=None):
   """Snipes a deleted discord message"""
+  
+  if send is None: send = channel.send
 
   if channel.id not in history:
-    await channel.send("There's nothing to snipe!")
+    await send("There's nothing to snipe!")
     return
 
   # Find deleted message
@@ -211,7 +214,7 @@ async def snipe(channel: discord.channel):
 
   # If message is invalid tell the user and terminate process
   if not ctx.is_valid:
-    await channel.send('Message is unavailable (bot is being updated).')
+    await send('Message is unavailable (bot is being updated).')
     return
 
   try:
@@ -220,8 +223,8 @@ async def snipe(channel: discord.channel):
 
     # Send normally if it does not have any attachments
     if len(ctx.attachments) == 0:
-      await channel.send(embed=embed)
-      await send_deleted_embeds(channel, ctx)
+      await send(embed=embed)
+      await send_deleted_embeds(channel, ctx, send)
       return
     
     file = await TemporaryFile.save(ctx.attachments[0])
@@ -229,14 +232,14 @@ async def snipe(channel: discord.channel):
     # Send file with embed if file is an image
     if file.is_image():
       embed.set_image(url='attachment://'+file.name)
-      await channel.send(embed=embed, file=file)
-      await send_deleted_embeds(channel, ctx)
+      await send(embed=embed, file=file)
+      await send_deleted_embeds(channel, ctx, send)
       return
     
     # Send file and embed separately
-    await channel.send(embed=embed)
-    await send_deleted_embeds(channel, ctx)
-    await channel.send(file=file)
+    await send(embed=embed)
+    await send_deleted_embeds(channel, ctx, send)
+    await send(file=file)
 
 
   except discord.errors.Forbidden:
@@ -321,7 +324,7 @@ async def test_command(interaction: discord.Interaction):
 
 @tree.command(name='snipe', description='Brings back the most recently deleted message')
 async def snipe_command(interaction: discord.Interaction):
-  await snipe(interaction.message.channel)
+  await snipe(bot.get_channel(interaction.channel_id), interaction.response.send_message)
 
 @tree.command(name='dox', description="Find someone's school picture, school, and student id")
 async def dox_command(interaction: discord.Interaction):
