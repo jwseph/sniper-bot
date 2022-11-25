@@ -285,8 +285,12 @@ if not os.path.exists('tmp'): os.mkdir('tmp')
 
 
 @tree.command(name='test', description='testing')
-async def snipe(interaction: discord.Interaction):
+async def test_command(interaction: discord.Interaction):
   await interaction.response.send_message('Test')
+
+@tree.command(name='snipe', description='Brings back the most recently deleted message')
+async def snipe_command(interaction: discord.Interaction):
+  await snipe(interaction.message.channel)
 
 
 @bot.event
