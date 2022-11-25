@@ -324,7 +324,7 @@ async def snipe_command(interaction: discord.Interaction):
   await snipe(interaction.message.channel)
 
 @tree.command(name='dox', description="Find someone's school picture, school, and student id")
-async def snipe_command(interaction: discord.Interaction):
+async def dox_command(interaction: discord.Interaction):
   await dox(interaction.message)
 
 
