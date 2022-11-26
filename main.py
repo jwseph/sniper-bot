@@ -347,7 +347,7 @@ async def on_message(message):
 
 
     # "Snipe" function
-    case ['snipe', *_] | ['pls', 'snipe', *_]:
+    case ['snipe', *_] | ['pls' | 'plz', 'snipe', *_]:
 
       # if message.author == bot.user: await message.delete()
       
@@ -355,7 +355,7 @@ async def on_message(message):
 
 
     # User wants to doxx
-    case ['pls', 'dox' | 'doxx', _, *_]:
+    case ['pls' | 'plz', 'dox' | 'doxx', _, *_]:
 
       # if message.guild is not None and message.guild.id == 836698659071590452:
       #   await message.channel.send('Please use `/search <person>` instead next time, thanks!')
@@ -364,7 +364,7 @@ async def on_message(message):
     
     
     # User wants to roll
-    case ['pls', category, *school] if category in ['roll', 'r', 'kamiak', 'k', 'mariner', 'm']:
+    case ['pls' | 'plz', category, *school] if category in ['roll', 'r', 'kamiak', 'k', 'mariner', 'm']:
 
       # Return if user is using command in dms
       if isinstance(message.channel, discord.DMChannel):
@@ -393,12 +393,12 @@ async def on_message(message):
 
       
     # User wants to uwu text
-    case ['pls', command, _, *_] if command in ['uwu', 'uwuify']:
+    case ['pls' | 'plz', command, _, *_] if command in ['uwu', 'uwuify']:
       await message.channel.send(uwuify(message.content[message.content.index(command)+len(command)+1:]))
 
 
     # User wants to be reminded
-    case ['pls', 'remind', *_]:
+    case ['pls' | 'plz', 'remind', *_]:
       try:
         time, text = message.content[message.content.index('remind')+7:].split(' ', 1)
         number = float(time[:-1])
@@ -427,7 +427,7 @@ async def on_message(message):
 
     
     # 'pls waifu' command
-    case ['pls', tag] if tag in ['w', 'uniform', 'maid', 'waifu', 'oppai']:
+    case ['pls' | 'plz', tag] if tag in ['w', 'uniform', 'maid', 'waifu', 'oppai']:
       if tag == 'w': tag == 'waifu'
       response = requests.get(r'https://api.waifu.im/random?selected_tags='+tag)
       while not response.ok: response = requests.get(r'https://api.waifu.im/random?selected_tags=waifu')
