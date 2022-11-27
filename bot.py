@@ -321,13 +321,13 @@ if not os.path.exists('tmp'): os.mkdir('tmp')
 async def test_command(interaction: discord.Interaction):
   await interaction.response.send_message('Test')
 
-@tree.command(name='snipe', description='Brings back the most recently deleted message')
-async def snipe_command(interaction: discord.Interaction):
-  await snipe(bot.get_channel(interaction.channel_id), interaction.response.send_message)
+# @tree.command(name='snipe', description='Brings back the most recently deleted message')
+# async def snipe_command(interaction: discord.Interaction):
+#   await snipe(bot.get_channel(interaction.channel_id), interaction.response.send_message)
 
-@tree.command(name='dox', description="Find someone's school picture, school, and student id")
-async def dox_command(interaction: discord.Interaction):
-  await dox(interaction.message)
+# @tree.command(name='dox', description="Find someone's school picture, school, and student id")
+# async def dox_command(interaction: discord.Interaction):
+#   await dox(interaction.message)
 
 
 @bot.event
