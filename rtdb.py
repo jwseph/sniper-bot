@@ -1,12 +1,13 @@
 import firebase_admin
 from firebase_admin import credentials, db
 import os
+import base64
 
 cert = {
   "type": "service_account",
   "project_id": "sniper-mudae",
   "private_key_id": os.environ['PRIVATE_KEY_ID'],
-  "private_key": os.environ['PRIVATE_KEY'],
+  "private_key": base64.b64decode(os.environ['PRIVATE_KEY']).decode(),  # Encoded in base64 because of line-breaks
   "client_email": "firebase-adminsdk-fbp5e@sniper-mudae.iam.gserviceaccount.com",
   "client_id": "110578361931967482061",
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
