@@ -1,5 +1,5 @@
 import discord
-from discord import app_commands
+from discord.ext import commands
 import datetime
 import threading
 import os
@@ -238,7 +238,7 @@ async def snipe(channel: discord.channel, send=None):
     # Send file and embed separately
     await send(embed=embed)
     await send_deleted_embeds(channel, ctx)
-    await send(file=file)
+    await channel.send(file=file)
 
 
   except discord.errors.Forbidden:
@@ -248,9 +248,9 @@ async def snipe(channel: discord.channel, send=None):
     history[channel.id].insert(0, ctx)  # Front-based stack
 
 
-async def dox(message: discord.Message):
-  """Find's someone's school picture, school, and student id from a message"""
-  query = message.content.lower().split(' ')[2:]
+async def dox(text: str, author: discord.User, send):
+  """Finds someone's school picture, school, and student id"""
+  query = text.strip().lower().split(' ')[2:]
   students = [
     student
     for student, _ in sorted(
@@ -272,27 +272,25 @@ async def dox(message: discord.Message):
     )
   ]
   if len(students) == 0:
-    await message.channel.send("That person doesn't exist!")
+    await send("That person doesn't exist!")
   else:
-    view = SchoologyView(students, message.author)
-    view.message = await message.channel.send(embed=view.embed, view=view)
+    view = SchoologyView(students, author)
+    view.message = await send(embed=view.embed, view=view)
     ref.child(f'waifus/{students[0].url[::-1].split("/", 2)[1][::-1]}/doxxes').transaction(increment)
 
 
-
-class SniperClient(discord.Client):
+class SniperBot(commands.Bot):
   def __init__(self):
     intents = discord.Intents.default()
     intents.members = True
     intents.messages = True
     intents.message_content = True
-    super().__init__(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
+    super().__init__('', intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
     self.synced = False
   
   async def on_ready(self):
-    await self.wait_until_ready()
     if not self.synced:
-      await tree.sync()
+      await self.tree.sync()
       self.synced = True
     print(f'[sniper] :: Logged in as {bot.user}')
 
@@ -303,9 +301,7 @@ CLEAR_LIMIT = datetime.timedelta(minutes=30)
 CLEAR_DELAY = datetime.timedelta(minutes=5)
 SNIPE_DELAY = datetime.timedelta(seconds=60)
 
-# bot = discord.Client(intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
-bot = SniperClient()
-tree = app_commands.CommandTree(bot)
+bot = SniperBot()
 
 history = {}
 admins = [557233155866886184, 650900479663931413]
@@ -317,21 +313,17 @@ for student in data:
 if not os.path.exists('tmp'): os.mkdir('tmp')
 
 
-@tree.command(name='test', description='testing')
-async def test_command(interaction: discord.Interaction):
-  await interaction.response.send_message('Test')
+@bot.hybrid_command(name='snipe', description='Bring back the most recently deleted message')
+async def snipe_command(ctx: commands.Context):
+  await snipe(ctx.channel, ctx.send)
 
-# @tree.command(name='snipe', description='Brings back the most recently deleted message')
-# async def snipe_command(interaction: discord.Interaction):
-#   await snipe(bot.get_channel(interaction.channel_id), interaction.response.send_message)
-
-# @tree.command(name='dox', description="Find someone's school picture, school, and student id")
-# async def dox_command(interaction: discord.Interaction):
-#   await dox(interaction.message)
+@bot.hybrid_command(name='dox', description="Find someone's school picture, school, and student id")
+async def dox_command(ctx: commands.Context, *, name: str):
+  await dox(f'pls dox {name}', ctx.author, ctx.send)
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message): 
   # Stop execution if sender is this bot
   # if message.author == bot.user: return
 
@@ -354,13 +346,13 @@ async def on_message(message):
       await snipe(message.channel)
 
 
-    # User wants to doxx
+    # User wants to dox
     case ['pls' | 'plz', 'dox' | 'doxx', _, *_]:
 
       # if message.guild is not None and message.guild.id == 836698659071590452:
       #   await message.channel.send('Please use `/search <person>` instead next time, thanks!')
 
-      await dox(message)
+      await dox(message.content, message.author, message.channel.send)
     
     
     # User wants to roll
