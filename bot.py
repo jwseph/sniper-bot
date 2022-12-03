@@ -352,6 +352,8 @@ async def on_message(message):
       # if message.guild is not None and message.guild.id == 836698659071590452:
       #   await message.channel.send('Please use `/search <person>` instead next time, thanks!')
 
+      if 'https://' in message.content or 'http://' in message.content: return
+
       await dox(message.content, message.author, message.channel.send)
     
     
