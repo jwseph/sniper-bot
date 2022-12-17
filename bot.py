@@ -423,8 +423,9 @@ async def on_message(message):
     # 'pls waifu' command
     case ['pls' | 'plz', tag] if tag in ['w', 'uniform', 'maid', 'waifu', 'oppai']:
       if tag == 'w': tag == 'waifu'
-      response = requests.get(r'https://api.waifu.im/random?selected_tags='+tag)
-      while not response.ok: response = requests.get(r'https://api.waifu.im/random?selected_tags=waifu')
+      url = r'https://api.waifu.im/random?selected_tags='+tag
+      response = requests.get(url)
+      while not response.ok: response = requests.get(url)
       image_data = response.json()['images'][0]
 
       image_url = image_data['url']
