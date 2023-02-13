@@ -1,3 +1,5 @@
+# TODO: Implement new face recognition response using face++ from face_api.py
+
 import discord
 from discord.ext import commands
 import datetime
@@ -295,7 +297,6 @@ class SniperBot(commands.Bot):
     print(f'[sniper] :: Logged in as {bot.user}')
 
 
-
 TOKEN = os.environ['TOKEN']
 CLEAR_LIMIT = datetime.timedelta(minutes=30)
 CLEAR_DELAY = datetime.timedelta(minutes=5)
@@ -355,6 +356,25 @@ async def on_message(message):
       if 'https://' in message.content or 'http://' in message.content: return
 
       await dox(message.content, message.author, message.channel.send)
+    
+
+    # # User wants to dox by recognizing a face from an image
+    # case ['pls' | 'plz', 'dox' | 'doxx'] if message.attachments:
+
+    #   image_url = message.attachments[0].url
+
+    #   try:
+    #     result_filename, multiple_faces = await fr.get_collage(image_url)
+    #     embed = discord.Embed(color=0x202225)
+    #     embed.title = 'Dox results'
+    #     if multiple_faces:
+    #       embed.description = 'Multiple faces were detected in the image\nPlease crop the image to target a particular person'
+    #     embed.set_image(url='attachment://'+result_filename)
+    #     file = discord.File('tmp/'+result_filename)
+    #     await message.channel.send(embed=embed, file=file)
+      
+    #   except AssertionError:
+    #     await message.channel.send('No faces detected in the image')
     
     
     # User wants to roll
