@@ -287,7 +287,7 @@ class SniperBot(commands.Bot):
     intents.members = True
     intents.messages = True
     intents.message_content = True
-    super().__init__('', intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='"snipe"', type=2))
+    super().__init__('', intents=intents, status=discord.Status.do_not_disturb, activity=discord.Activity(name='snipe, pls dox', type=2))
     self.synced = False
   
   async def on_ready(self):
