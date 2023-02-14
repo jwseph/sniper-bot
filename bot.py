@@ -16,6 +16,7 @@ import random
 from schoology import Student, SCHOOL_URLS
 from uwuify import uwuify
 from rtdb import ref, increment
+from face_api import FaceAPI
 
 
 class Log:
@@ -42,11 +43,12 @@ class Log:
 
 class SchoologyView(discord.ui.View):
 
-  def __init__(self, students, author):
+  def __init__(self, students, author, *, confidences=None):
     super().__init__()
     self.i = 0
     self.students = students
     self.author = author
+    self.confidences = confidences
     self.frst_button = discord.ui.Button(emoji='<:first:940169691425566741>')
     self.prev_button = discord.ui.Button(emoji='<:left:940157746723061810>')
     self.next_button = discord.ui.Button(emoji='<:right:940157728083570748>')
@@ -82,6 +84,9 @@ class SchoologyView(discord.ui.View):
     school_name = student.school[-1]
     school_url = SCHOOL_URLS.get(school_name, "https://www.mukilteoschools.org/")
     student_info.append(f'School: [{school_name}]({school_url})')
+    
+    if self.confidences is not None:
+      student_info.append(f'Confidence: {self.confidences[self.i]:.3f}%')
 
     self.embed.description = '\n'.join(student_info)
     self.embed.set_image(url=student.image[-1])
@@ -250,6 +255,21 @@ async def snipe(channel: discord.channel, send=None):
     history[channel.id].insert(0, ctx)  # Front-based stack
 
 
+async def dox_image(image_url: str, author: discord.User, send):
+  """Finds someone's school picture, school, and student id from an image url"""
+  # try:
+  print('IMAGE URL:', image_url)
+  async with FaceAPI() as fa:
+    results = await fa.search_face(image_url, '6b4ad750d4143ce758a395336a553085')
+  students = [student_dict[result[0]] for result in results]
+  confidences = [result[1] for result in results]
+
+  view = SchoologyView(students, author, confidences=confidences)
+  view.message = await send(embed=view.embed, view=view)
+  ref.child(f'waifus/{students[0].url[::-1].split("/", 2)[1][::-1]}/doxxes').transaction(increment)
+  # except:
+  #   await message.channel.send('No faces were detected in the image')
+
 async def dox(text: str, author: discord.User, send):
   """Finds someone's school picture, school, and student id"""
   query = text.strip().lower().split(' ')[2:]
@@ -306,7 +326,8 @@ bot = SniperBot()
 
 history = {}
 admins = [557233155866886184, 650900479663931413]
-data = [Student(student) for student in json.load(open('data.json', 'r')).values()] # Schoology data
+student_dict = {student_id: Student(student) for student_id, student in json.load(open('data.json', 'r')).items()}
+data = list(student_dict.values())  # Schoology data
 data_school = {}  # Students per school
 for student in data:
   if student.school[-1] not in data_school: data_school[student.school[-1]] = []
@@ -346,35 +367,25 @@ async def on_message(message):
       
       await snipe(message.channel)
 
+    
+    # Dox by image url
+    case ['pls' | 'plz', 'dox' | 'doxx', *_] if 'https://' in message.content or 'http://' in message.content:
 
-    # User wants to dox
+      matches = re.findall(r'((http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-]))', message.content)
+      await dox_image(matches[0][0], message.author, message.channel.send)
+
+    # Dox by image upload
+    case ['pls' | 'plz', 'dox' | 'doxx'] if message.attachments:
+
+      await dox_image(message.attachments[0].url, message.author, message.channel.send)
+
+    # Dox by name query
     case ['pls' | 'plz', 'dox' | 'doxx', _, *_]:
 
       # if message.guild is not None and message.guild.id == 836698659071590452:
       #   await message.channel.send('Please use `/search <person>` instead next time, thanks!')
 
-      if 'https://' in message.content or 'http://' in message.content: return
-
       await dox(message.content, message.author, message.channel.send)
-    
-
-    # # User wants to dox by recognizing a face from an image
-    # case ['pls' | 'plz', 'dox' | 'doxx'] if message.attachments:
-
-    #   image_url = message.attachments[0].url
-
-    #   try:
-    #     result_filename, multiple_faces = await fr.get_collage(image_url)
-    #     embed = discord.Embed(color=0x202225)
-    #     embed.title = 'Dox results'
-    #     if multiple_faces:
-    #       embed.description = 'Multiple faces were detected in the image\nPlease crop the image to target a particular person'
-    #     embed.set_image(url='attachment://'+result_filename)
-    #     file = discord.File('tmp/'+result_filename)
-    #     await message.channel.send(embed=embed, file=file)
-      
-    #   except AssertionError:
-    #     await message.channel.send('No faces detected in the image')
     
     
     # User wants to roll

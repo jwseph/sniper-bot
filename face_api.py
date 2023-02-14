@@ -8,6 +8,10 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 
+print('environ', os.environ)
+print('FACEPP_API_KEY', os.getenv('FACEPP_API_KEY'))
+print('FACEPP_API_SECRET', os.getenv('FACEPP_API_SECRET'))
+
 class FaceAPI:
     def __init__(
         self,
@@ -84,7 +88,12 @@ class FaceAPI:
         print(resp.status)
         assert resp.ok
         data = await resp.json()
-        return data['results']
+
+        student_ids = json.load(open('student_ids.json'))
+        return [
+            (student_ids[result['face_token']], result['confidence'])
+            for result in data['results']
+        ]
 
 
 async def main():
@@ -93,12 +102,9 @@ async def main():
         faceset_token = '6b4ad750d4143ce758a395336a553085'
         print('FaceSet token:', faceset_token)
         results = await fa.search_face('https://cdn.discordapp.com/attachments/931711737353371699/1074076770879414342/IMG_1228.jpg', faceset_token)
-        student_ids = json.load(open('student_ids.json'))
         students = json.load(open('data.json'))
-        for result in results:
-            student_id = student_ids[result['face_token']]
+        for student_id, confidence in results:
             name = students[student_id]['name']
-            confidence = result['confidence']
             print(f'{confidence}% | {name}')
 
 if __name__ == '__main__':
