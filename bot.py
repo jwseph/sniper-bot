@@ -358,7 +358,7 @@ async def on_message(message):
 
 
     # "Snipe" function
-    case ['snipe', *_] | ['pls' | 'plz', 'snipe', *_]:
+    case ['snipe', *_] | ['pls' | 'plz', 'snipe']:
 
       # if message.author == bot.user: await message.delete()
       
@@ -366,18 +366,18 @@ async def on_message(message):
 
     
     # Dox by image url
-    case ['pls' | 'plz', 'dox' | 'doxx', *_] if 'https://' in message.content or 'http://' in message.content:
+    case ['pls' | 'plz', 'dox' | 'doxx' | 'snipe', *_] if 'https://' in message.content or 'http://' in message.content:
 
       matches = re.findall(r'((http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-]))', message.content)
       await dox_image(matches[0][0], message.author, message.channel.send)
 
     # Dox by image upload
-    case ['pls' | 'plz', 'dox' | 'doxx'] if message.attachments:
+    case ['pls' | 'plz', 'dox' | 'doxx' | 'snipe'] if message.attachments:
 
       await dox_image(message.attachments[0].url, message.author, message.channel.send)
 
     # Dox by name query
-    case ['pls' | 'plz', 'dox' | 'doxx', _, *_]:
+    case ['pls' | 'plz', 'dox' | 'doxx' | 'snipe', _, *_]:
 
       # if message.guild is not None and message.guild.id == 836698659071590452:
       #   await message.channel.send('Please use `/search <person>` instead next time, thanks!')
