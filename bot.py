@@ -1,5 +1,3 @@
-# TODO: Implement new face recognition response using face++ from face_api.py
-
 import discord
 from discord.ext import commands
 import datetime
@@ -86,7 +84,7 @@ class SchoologyView(discord.ui.View):
     student_info.append(f'School: [{school_name}]({school_url})')
     
     if self.confidences is not None:
-      student_info.append(f'Confidence: {self.confidences[self.i]:.3f}%')
+      student_info.append(f'Confidence: `{self.confidences[self.i]:.3f}%`')
 
     self.embed.description = '\n'.join(student_info)
     self.embed.set_image(url=student.image[-1])
@@ -257,18 +255,17 @@ async def snipe(channel: discord.channel, send=None):
 
 async def dox_image(image_url: str, author: discord.User, send):
   """Finds someone's school picture, school, and student id from an image url"""
-  # try:
-  print('IMAGE URL:', image_url)
-  async with FaceAPI() as fa:
-    results = await fa.search_face(image_url, '6b4ad750d4143ce758a395336a553085')
-  students = [student_dict[result[0]] for result in results]
-  confidences = [result[1] for result in results]
+  try:
+    async with FaceAPI() as fa:
+      results = await fa.search_face(image_url, '6b4ad750d4143ce758a395336a553085')
+    students = [student_dict[result[0]] for result in results.items()]
+    confidences = [result[1] for result in results.items()]
 
-  view = SchoologyView(students, author, confidences=confidences)
-  view.message = await send(embed=view.embed, view=view)
-  ref.child(f'waifus/{students[0].url[::-1].split("/", 2)[1][::-1]}/doxxes').transaction(increment)
-  # except:
-  #   await message.channel.send('No faces were detected in the image')
+    view = SchoologyView(students, author, confidences=confidences)
+    view.message = await send(embed=view.embed, view=view)
+    ref.child(f'waifus/{students[0].url[::-1].split("/", 2)[1][::-1]}/doxxes').transaction(increment)
+  except:
+    await send('No faces were detected in the image')
 
 async def dox(text: str, author: discord.User, send):
   """Finds someone's school picture, school, and student id"""

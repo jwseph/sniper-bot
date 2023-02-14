@@ -8,9 +8,6 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 
-print('environ', os.environ)
-print('FACEPP_API_KEY', os.getenv('FACEPP_API_KEY'))
-print('FACEPP_API_SECRET', os.getenv('FACEPP_API_SECRET'))
 
 class FaceAPI:
     def __init__(
@@ -78,7 +75,7 @@ class FaceAPI:
             'face_tokens': ','.join(face_tokens),
         })
     
-    async def search_face(self, image_url: str, faceset_token: str, *, k: int = 5):
+    async def search_face(self, image_url: str, faceset_token: str, *, k: int = 5) -> dict[str, float]:
         '''Searches for a face in a FaceSet'''
         resp = await self.post('search', {
             'image_url': image_url,
@@ -90,10 +87,12 @@ class FaceAPI:
         data = await resp.json()
 
         student_ids = json.load(open('student_ids.json'))
-        return [
-            (student_ids[result['face_token']], result['confidence'])
-            for result in data['results']
-        ]
+        results = {}
+        for result in data['results']:
+            student_id = student_ids[result['face_token']]
+            if student_id in results: continue
+            results[student_id] = result['confidence']            
+        return results
 
 
 async def main():
