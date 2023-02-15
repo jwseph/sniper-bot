@@ -1,4 +1,4 @@
-# TODO: Use multiple FaceSets for >5 results and >10k face_tokens - combine using confidence
+# TODO: Think about using multiple accounts to speed this up if >3 sets
 
 import aiohttp
 import asyncio
@@ -10,6 +10,10 @@ load_dotenv()
 
 
 class FaceAPI:
+    faceset_tokens = {
+        'high schools (exclusive)': '6b4ad750d4143ce758a395336a553085',
+        'middle schools (inclusive)': '4b70a0db2e2bfa74a7919320bd787a48',
+    }
     def __init__(
         self,
         api_key=os.getenv('FACEPP_API_KEY'),
@@ -23,13 +27,16 @@ class FaceAPI:
         return self
     async def __aexit__(self, exc_type, exc_value, tb):
         await self.session.close()
-    def post(self, endpoint: str, params: dict = {}):
-        return self.session.post(
-            self.base_endpoint+endpoint,
-            params=self.auth_params|params,
-        )
+    async def post(self, endpoint: str, params: dict = {}):
+        while True:
+            resp = await self.session.post(
+                self.base_endpoint+endpoint,
+                params=self.auth_params|params,
+            )
+            if resp.status != 403:
+                return resp
     
-    async def upload_images(self, schools={'Kamiak', 'Mariner'}):
+    async def upload_images(self, schools={'Kamiak', 'Mariner'}, faceset_token: str = None):
         '''Uploads the images in the /images folder into a new FaceSet'''
 
         student_ids = {}  # Key is face_token
@@ -40,11 +47,13 @@ class FaceAPI:
             for image_url in student['image']:
                 if not image_url[:-11].endswith('.jpg'): continue
                 q.append((student_id, self.upload_image(image_url)))
+        print(len(q))
         
-        # Create faceset
-        resp = await self.post('faceset/create')
-        faceset_token = (await resp.json())['faceset_token']
-
+        if faceset_token is None:
+            # Create faceset
+            resp = await self.post('faceset/create')
+            faceset_token = (await resp.json())['faceset_token']
+        
         while q:
             face_tokens = []
             while q and len(face_tokens) < 5:
@@ -60,8 +69,6 @@ class FaceAPI:
 
     async def upload_image(self, image_url: str) -> str|None:
         resp = await self.post('detect', {'image_url': image_url})
-        while resp.status == 403:
-            resp = await self.post('detect', {'image_url': image_url})
         print(resp.status)
         if not resp.ok: return
         data = await resp.json()
@@ -70,12 +77,12 @@ class FaceAPI:
     
     async def add_face(self, faceset_token: str, face_tokens: list[str]):
         assert len(face_tokens) <= 5
-        resp = await self.post('faceset/addface', {
+        await self.post('faceset/addface', {
             'faceset_token': faceset_token,
             'face_tokens': ','.join(face_tokens),
         })
     
-    async def search_face(self, image_url: str, faceset_token: str, *, k: int = 5) -> dict[str, float]:
+    async def search_face_in_set(self, image_url: str, faceset_token: str, *, k: int = 5) -> dict[str, float]:
         '''Searches for a face in a FaceSet'''
         resp = await self.post('search', {
             'image_url': image_url,
@@ -83,28 +90,41 @@ class FaceAPI:
             'return_result_count': k,
         })
         print(resp.status)
-        assert resp.ok
+        assert resp.ok, str(resp.status)+(await resp.text())
         data = await resp.json()
 
         student_ids = json.load(open('student_ids.json'))
-        results = {}
-        for result in data['results']:
-            student_id = student_ids[result['face_token']]
-            if student_id in results: continue
-            results[student_id] = result['confidence']            
-        return results
+        return [
+            (student_ids[result['face_token']], result['confidence'])
+            for result in data['results']
+        ]
+    
+    async def search_face(self, image_url: str, *, k: int = 5):
+        '''Searches for face in all FaceSets'''
+        promises = [
+            self.search_face_in_set(image_url, faceset_token, k=k)
+            for faceset_token in FaceAPI.faceset_tokens.values()
+        ]
+        results = [
+            result
+            async for results in (await promise for promise in promises)
+            for result in results
+        ]
+        results.sort(key=lambda _: _[1])
+        # Trim to top k and remove duplicates with less confidence
+        return list(dict(results[-k:]).items())[::-1]
 
 
 async def main():
     async with FaceAPI() as fa:
-        # faceset_token = await fa.upload_images()
-        faceset_token = '6b4ad750d4143ce758a395336a553085'
+        faceset_token = await fa.upload_images({'Harbour Pointe', 'Olympic View', 'Explorer', 'Voyager'}, '4b70a0db2e2bfa74a7919320bd787a48')
+        # faceset_token = '6b4ad750d4143ce758a395336a553085'
         print('FaceSet token:', faceset_token)
-        results = await fa.search_face('https://cdn.discordapp.com/attachments/931711737353371699/1074076770879414342/IMG_1228.jpg', faceset_token)
-        students = json.load(open('data.json'))
-        for student_id, confidence in results:
-            name = students[student_id]['name']
-            print(f'{confidence}% | {name}')
+        # results = await fa.search_face('https://cdn.discordapp.com/attachments/931711737353371699/1074076770879414342/IMG_1228.jpg', faceset_token)
+        # students = json.load(open('data.json'))
+        # for student_id, confidence in results:
+        #     name = students[student_id]['name']
+        #     print(f'{confidence}% | {name}')
 
 if __name__ == '__main__':
     asyncio.run(main())

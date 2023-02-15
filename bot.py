@@ -213,8 +213,8 @@ async def snipe(channel: discord.channel, send=None):
     return
 
   # Find deleted message
-  ctx = history[channel.id].pop(0)
-  if len(history[channel.id]) == 0: del history[channel.id]  # Clean channel history
+  ctx = history[channel.id].pop()
+  if not history[channel.id]: del history[channel.id]  # Clean channel history
 
   # If message is invalid tell the user and terminate process
   if not ctx.is_valid:
@@ -226,7 +226,7 @@ async def snipe(channel: discord.channel, send=None):
     embed = await get_snipe_embed(ctx)
 
     # Send normally if it does not have any attachments
-    if len(ctx.attachments) == 0:
+    if not ctx.attachments:
       await send(embed=embed)
       await send_deleted_embeds(channel, ctx)
       return
@@ -257,15 +257,15 @@ async def dox_image(image_url: str, author: discord.User, send):
   """Finds someone's school picture, school, and student id from an image url"""
   try:
     async with FaceAPI() as fa:
-      results = await fa.search_face(image_url, '6b4ad750d4143ce758a395336a553085')
-    students = [student_dict[result[0]] for result in results.items()]
-    confidences = [result[1] for result in results.items()]
+      results = await fa.search_face(image_url)
+    students = [student_dict[result[0]] for result in results]
+    confidences = [result[1] for result in results]
 
     view = SchoologyView(students, author, confidences=confidences)
     view.message = await send(embed=view.embed, view=view)
     ref.child(f'waifus/{students[0].url[::-1].split("/", 2)[1][::-1]}/doxxes').transaction(increment)
   except:
-    await send('No faces were detected in the image')
+    await send('No faces (or multiple faces) were detected in the image')
 
 async def dox(text: str, author: discord.User, send):
   """Finds someone's school picture, school, and student id"""

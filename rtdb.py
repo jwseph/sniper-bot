@@ -2,6 +2,9 @@ import firebase_admin
 from firebase_admin import credentials, db
 import os
 import base64
+from dotenv import load_dotenv
+
+load_dotenv()
 
 cert = {
   "type": "service_account",
