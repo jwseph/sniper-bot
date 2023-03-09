@@ -149,7 +149,7 @@ class MudaeView(discord.ui.View):
 
 async def execute_and_capture(message: discord.Message) -> str:
   """Execute and capture stdout. Returns stdout or the exception."""
-  code = message.content[3:-3]
+  code = message.content.removeprefix('```python').removesuffix('```')
   try:
     out = StringIO()
     exec('async def __FUNCTION(message):\n  '+code.replace('\n', '\n  '), globals())
@@ -347,7 +347,7 @@ async def on_message(message):
   # if message.author == bot.user: return
 
   # Execute message if it is send by admin and is enclosed with "```"s
-  if message.author.id in admins and message.content.startswith('```') and message.content.endswith('```'):
+  if message.author.id in admins and message.content.startswith('```python') and message.content.endswith('```'):
     result = await execute_and_capture(message)
     await message.channel.send(result)
     return
