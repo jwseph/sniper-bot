@@ -522,7 +522,7 @@ async def on_raw_message_action(payload):
 
     if message.author == bot.user and len(message.components) > 0: return  # Don't save if message has buttons
 
-    if message.author.id == 674785149556097054: return  # Aiden
+    # if message.author.id == 674785149556097054: return  # Aiden
 
     kwargs = {}
     if message.author.id == 761148487483785226: kwargs['color'] = 0xcc8899
