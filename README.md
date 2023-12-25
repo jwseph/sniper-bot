@@ -1,3 +1,5 @@
+My first Discord bot!
+
 Commands: https://kamiak.org/sniperbot
 
 Add to your server: https://bit.ly/sniper_bot
