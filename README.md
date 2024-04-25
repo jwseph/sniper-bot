@@ -12,4 +12,4 @@ Also supports face identification from a photo to find name/email. A full list o
 <img src="https://github.com/jwseph/sniper-bot/assets/96963864/94a81d1f-5fc9-47be-9a96-40aa3ab25252" width="200">
 
 ## Other random fun features
-- Text filters, automatic reminders, random Kanye West quotes (did not age well), random anime drawings
+- Deleted message retrieval, text filters, automatic reminders, random Kanye West quotes (did not age well), random anime drawings
